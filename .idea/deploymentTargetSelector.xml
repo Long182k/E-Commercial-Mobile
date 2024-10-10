@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="presentation">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-10-10T15:28:09.880794Z">
+        <DropdownSelection timestamp="2024-10-10T15:52:30.742270Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/drake/.android/avd/3.2_HVGA_slider_ADP1_Edited_API_30.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/drake/.android/avd/Pixel_7_Pro_API_34.avd" />
             </handle>
           </Target>
         </DropdownSelection>
