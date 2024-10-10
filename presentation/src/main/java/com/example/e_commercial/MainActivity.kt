@@ -26,8 +26,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.example.domain.model.Product
+import com.example.e_commercial.model.UIProductModel
+import com.example.e_commercial.navigation.CartScreen
+import com.example.e_commercial.navigation.HomeScreen
+import com.example.e_commercial.navigation.ProductDetails
+import com.example.e_commercial.navigation.ProfileScreen
+import com.example.e_commercial.navigation.productNavType
 import com.example.e_commercial.ui.feature.home.HomeScreen
 import com.example.e_commercial.ui.theme.ECommercialTheme
+import kotlin.reflect.typeOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,18 +51,26 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     Surface(modifier = Modifier.fillMaxSize().padding(it)) {
-                        NavHost(navController = navController, startDestination = "home") {
-                            composable("home") {
+                        NavHost(navController = navController, startDestination = HomeScreen) {
+                            composable<HomeScreen> {
                                 HomeScreen(navController)
                             }
-                            composable("cart") {
+                            composable<CartScreen> {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     Text(text = "Cart")
                                 }
                             }
-                            composable("profile") {
+                            composable<ProfileScreen> {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     Text(text = "Profile")
+                                }
+                            }
+                            composable<ProductDetails>(
+                                typeMap = mapOf(typeOf<UIProductModel>() to productNavType)
+                            ) {
+                                val productRoute = it.toRoute<ProductDetails>()
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Text(text = productRoute.product.title)
                                 }
                             }
                         }
@@ -78,8 +95,10 @@ fun BottomNavigationBar(navController: NavController) {
         )
 
         items.forEach { item ->
+            val isSelected = currentRoute?.substringBefore("?") == item.route::class.qualifiedName
+
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = isSelected,
                 onClick = {
                     navController.navigate(item.route) {
                         navController.graph.startDestinationRoute?.let { startRoute ->
@@ -96,7 +115,7 @@ fun BottomNavigationBar(navController: NavController) {
                     Image(
                         painter = painterResource(id = item.icon),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(if(currentRoute==item.route) MaterialTheme.colorScheme.primary else Color.Gray)
+                        colorFilter = ColorFilter.tint(if(isSelected) MaterialTheme.colorScheme.primary else Color.Gray)
                     )
                 },
                 colors = NavigationBarItemDefaults.colors().copy(
@@ -110,8 +129,8 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
-sealed class BottomNavItems(val route: String, val title: String, val icon: Int) {
-    object Home : BottomNavItems("home", "Home", icon = R.drawable.ic_home)
-    object Cart : BottomNavItems("cart", "Cart", icon = R.drawable.ic_cart)
-    object Profile : BottomNavItems("profile", "Profile", icon = R.drawable.ic_profile_bn)
+sealed class BottomNavItems(val route: Any, val title: String, val icon: Int) {
+    object Home : BottomNavItems(HomeScreen, "Home", icon = R.drawable.ic_home)
+    object Cart : BottomNavItems(CartScreen, "Cart", icon = R.drawable.ic_cart)
+    object Profile : BottomNavItems(ProfileScreen, "Profile", icon = R.drawable.ic_profile_bn)
 }
