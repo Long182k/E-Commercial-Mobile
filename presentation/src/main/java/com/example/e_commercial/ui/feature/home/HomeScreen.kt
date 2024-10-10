@@ -4,6 +4,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,8 @@ import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.domain.model.Product
 import com.example.e_commercial.R
+import com.example.e_commercial.model.UIProductModel
+import com.example.e_commercial.navigation.ProductDetails
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.context.loadKoinModules
 
@@ -87,12 +90,15 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
                     error.value = errorMsg
                 }
             }
-            HomeContent(feature.value, popular.value, categories.value, loading.value, error.value)
+            HomeContent(feature.value, popular.value,
+                categories.value, loading.value, error.value, onClick = {navController.navigate(ProductDetails(
+                    UIProductModel.fromProduct(it)
+                ))})
         }
     }
 }
 @Composable
-fun HomeProductRow(products: List<Product>, title: String) {
+fun HomeProductRow(products: List<Product>, title: String,onClick: (Product) -> Unit) {
     Column {
         Box(
             modifier = Modifier
@@ -122,18 +128,19 @@ fun HomeProductRow(products: List<Product>, title: String) {
                 val isVisible = remember { mutableStateOf(false) }
                 LaunchedEffect(true) { isVisible.value = true }
                 androidx.compose.animation.AnimatedVisibility(visible = isVisible.value, enter = fadeIn() + expandVertically()) { }
-                ProductItem(product = product)
+                ProductItem(product = product, onClick = onClick)
             }
         }
     }
 }
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(product: Product, onClick: (Product) -> Unit) {
     Card(
         modifier = Modifier
             .padding(horizontal = 8.dp)
-            .size(width = 126.dp, height = 144.dp),
+            .size(width = 126.dp, height = 144.dp)
+            .clickable { onClick(product) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.3f))
     ) {
@@ -165,7 +172,11 @@ fun ProductItem(product: Product) {
     }}
 
 @Composable
-fun HomeContent(featured: List<Product>, popularProducts: List<Product>, categories: List<String>, isLoading: Boolean = false, errorMsg: String? = null) {
+fun HomeContent(featured: List<Product>, popularProducts: List<Product>,
+                categories: List<String>, isLoading: Boolean = false,
+                errorMsg: String? = null,
+                onClick: (Product) -> Unit
+                ) {
     LazyColumn {
         item {
             ProfileHeader()
@@ -207,11 +218,11 @@ fun HomeContent(featured: List<Product>, popularProducts: List<Product>, categor
                 Spacer(modifier = Modifier.size(16.dp))
             }
             if (featured.isNotEmpty()) {
-                HomeProductRow(products = featured, title = "Featured")
+                HomeProductRow(products = featured, title = "Featured", onClick=onClick)
                 Spacer(modifier = Modifier.size(16.dp))
             }
             if (popularProducts.isNotEmpty()) {
-                HomeProductRow(products = popularProducts, title = "Popular Products")
+                HomeProductRow(products = popularProducts, title = "Popular Products",onClick=onClick)
             }
         }
     }

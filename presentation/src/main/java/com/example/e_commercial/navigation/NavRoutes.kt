@@ -1,12 +1,17 @@
-//package com.example.e_commercial.navigation
-//
-//import kotlinx.serialization.Serializable
-//
-//@Serializable
-//object HomeScreen
-//
-//@Serializable
-//object CartScreen
-//
-//@Serializable
-//object ProfileScreen
+package com.example.e_commercial.navigation
+
+import com.example.e_commercial.model.UIProductModel
+import kotlinx.serialization.Serializable
+
+@Serializable
+object HomeScreen
+
+@Serializable
+object CartScreen
+
+@Serializable
+object ProfileScreen
+
+@Serializable
+data class ProductDetails(val product: UIProductModel)
+
