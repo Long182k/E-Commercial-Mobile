@@ -15,7 +15,7 @@
       </SelectionState>
       <SelectionState runConfigName="presentation">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-10-03T17:38:49.759436Z">
+        <DropdownSelection timestamp="2024-10-10T15:28:09.880794Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/drake/.android/avd/3.2_HVGA_slider_ADP1_Edited_API_30.avd" />
