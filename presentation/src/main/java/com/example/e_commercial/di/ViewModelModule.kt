@@ -1,5 +1,6 @@
 package com.example.e_commercial.di
 
+import com.example.e_commercial.ui.feature.cart.CartViewModel
 import com.example.e_commercial.ui.feature.home.HomeViewModel
 import com.example.e_commercial.ui.feature.product_details.ProductDetailsViewModel
 import org.koin.core.module.dsl.viewModel
@@ -10,6 +11,9 @@ val viewModelModule = module {
         HomeViewModel(get(), get())
     }
     viewModel {
-        ProductDetailsViewModel()
+        ProductDetailsViewModel(get())
+    }
+    viewModel {
+        CartViewModel(get())
     }
 }

@@ -1,5 +1,6 @@
 package com.example.e_commercial
 
+import CartScreen
 import androidx.compose.ui.graphics.ColorFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -67,9 +68,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<CartScreen> {
                                 isShowBottomNav.value = true
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    Text(text = "Cart")
-                                }
+                                CartScreen(navController)
                             }
                             composable<ProfileScreen> {
                                 isShowBottomNav.value = true
