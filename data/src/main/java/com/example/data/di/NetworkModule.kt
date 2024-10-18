@@ -23,17 +23,17 @@ val networkModule = module {
                     ignoreUnknownKeys = true
                 })
             }
-            // Log everything
             install(Logging) {
                 level = LogLevel.ALL
                 logger = object : Logger {
                     override fun log(message: String) {
-                        Log.d("Backend", message)
+                        Log.d("BackEndHandler", message)
                     }
                 }
             }
         }
     }
-    single<NetworkService> { NetworkServiceImplement(get()) }
-
+    single<NetworkService> {
+        NetworkServiceImplement(get())
+    }
 }
