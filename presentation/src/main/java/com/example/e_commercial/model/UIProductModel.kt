@@ -14,7 +14,7 @@ data class UIProductModel(
     val categoryId: Int,
     val description: String,
     val image: String
-): Parcelable {
+) : Parcelable {
     companion object {
         fun fromProduct(product: Product) = UIProductModel(
             id = product.id,
@@ -25,5 +25,6 @@ data class UIProductModel(
             image = product.image
         )
     }
+
 }
 
