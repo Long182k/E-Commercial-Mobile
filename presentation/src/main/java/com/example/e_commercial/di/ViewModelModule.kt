@@ -1,5 +1,7 @@
 package com.example.e_commercial.di
 
+import com.example.e_commercial.ui.feature.account.login.LoginViewModel
+import com.example.e_commercial.ui.feature.account.register.RegisterViewModel
 import com.example.e_commercial.ui.feature.cart.CartViewModel
 import com.example.e_commercial.ui.feature.home.HomeViewModel
 import com.example.e_commercial.ui.feature.orders.OrdersViewModel
@@ -23,5 +25,13 @@ val viewModelModule = module {
     }
     viewModel {
         OrdersViewModel(get())
+    }
+
+    viewModel {
+        LoginViewModel(get())
+    }
+
+    viewModel {
+        RegisterViewModel(get())
     }
 }

@@ -5,5 +5,5 @@ data class AddCartRequestModel(
     val productName: String,
     val price: Double,
     val quantity: Int,
-    val userId: Int
+    val userId: Int,
 )
