@@ -1,6 +1,5 @@
 package com.example.e_commercial.ui.feature.product_details
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.request.AddCartRequestModel
@@ -14,7 +13,7 @@ class ProductDetailsViewModel(val useCase: AddToCartUseCase) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductDetailsEvent>(ProductDetailsEvent.Nothing)
     val state = _state.asStateFlow()
-
+    val userDomainModel = com.example.e_commercial.EcommercialSession.getUser()
     fun addProductToCart(product: UIProductModel) {
         viewModelScope.launch {
             _state.value = ProductDetailsEvent.Loading
@@ -24,23 +23,24 @@ class ProductDetailsViewModel(val useCase: AddToCartUseCase) : ViewModel() {
                     product.title,
                     product.price,
                     1,
-                    1
-                )
+                    userDomainModel!!.id!!
+                ),
+                userDomainModel.id!!.toLong()
             )
-            Log.d("ProductDetailsViewModel", "Result: $result")
             when (result) {
                 is com.example.domain.network.ResultWrapper.Success -> {
                     _state.value = ProductDetailsEvent.Success("Product added to cart")
                 }
 
                 is com.example.domain.network.ResultWrapper.Failure -> {
-                    _state.value = ProductDetailsEvent.Error("Something went wrong! product detail")
+                    _state.value = ProductDetailsEvent.Error("Something went wrong!")
                 }
             }
         }
     }
-}
 
+
+}
 
 sealed class ProductDetailsEvent {
     data object Loading : ProductDetailsEvent()

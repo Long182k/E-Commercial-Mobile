@@ -11,4 +11,3 @@ data class Product(
     val priceString: String
         get() = "$$price"
 }
-

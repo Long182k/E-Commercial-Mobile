@@ -6,6 +6,7 @@ import com.example.domain.repository.CartRepository
 import com.example.domain.repository.CategoryRepository
 import com.example.domain.repository.OrderRepository
 import com.example.domain.repository.ProductRepository
+import com.example.domain.repository.UserRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -13,4 +14,5 @@ val repositoryModule = module {
     single<CategoryRepository> { CategoryRepositoryImplement(get()) }
     single<CartRepository> { com.example.data.repository.CartRepositoryImplement(get()) }
     single<OrderRepository> { com.example.data.repository.OrderRepositoryImplement(get()) }
+    single<UserRepository> { com.example.data.repository.UserRepositoryImplement(get()) }
 }
