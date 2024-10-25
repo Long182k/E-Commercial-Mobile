@@ -1,6 +1,5 @@
 package com.example.e_commercial
 
-import android.app.Application
 import android.content.Context
 import com.example.domain.model.UserDomainModel
 import org.koin.core.component.KoinComponent
@@ -12,7 +11,7 @@ object EcommercialSession : KoinComponent {
     fun storeUser(user: UserDomainModel) {
         val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
-            putInt("id", user.id!!)
+            putInt("id", user.id!!.toInt())
             putString("username", user.username)
             putString("email", user.email)
             putString("name", user.name)
@@ -30,6 +29,17 @@ object EcommercialSession : KoinComponent {
             UserDomainModel(id, username, email, name)
         } else {
             null
+        }
+    }
+
+    fun clearUser() {
+        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            remove("id")
+            remove("username")
+            remove("email")
+            remove("name")
+            apply()
         }
     }
 }

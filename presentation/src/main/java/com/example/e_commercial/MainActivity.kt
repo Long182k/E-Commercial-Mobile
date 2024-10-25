@@ -49,6 +49,7 @@ import com.example.e_commercial.ui.feature.cart.CartScreen
 import com.example.e_commercial.ui.feature.home.HomeScreen
 import com.example.e_commercial.ui.feature.orders.OrdersScreen
 import com.example.e_commercial.ui.feature.product_details.ProductDetailsScreen
+import com.example.e_commercial.ui.feature.profile.ProfileScreen
 import com.example.e_commercial.ui.feature.summary.CartSummaryScreen
 import com.example.e_commercial.ui.feature.user_address.UserAddressScreen
 import com.example.e_commercial.ui.theme.ECommercialTheme
@@ -110,9 +111,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<ProfileScreen> {
                                 shouldShowBottomNav.value = true
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    Text(text = "Profile")
-                                }
+                                ProfileScreen(navController)
                             }
                             composable<CartSummaryScreen> {
                                 shouldShowBottomNav.value = false
