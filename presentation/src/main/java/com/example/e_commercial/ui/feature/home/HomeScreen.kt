@@ -25,10 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -39,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -121,64 +125,259 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
 
 @Composable
 fun ProfileHeader(onCartClicked: () -> Unit) {
-    Box(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 16.dp)
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.align(Alignment.CenterStart)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                )
+                .padding(16.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_profile),
-                contentDescription = null,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(
-                    text = "Hello,", style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "John Doe",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_profile),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .padding(8.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Hello,",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            text = "Drake",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {                    IconButton(
+                        onClick = { /* Handle notification */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.notification),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = onCartClicked,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_cart),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         }
-        Row(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.notification),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-                    .padding(8.dp),
-                contentScale = ContentScale.Inside
-            )
-            Image(
-                painter = painterResource(id = R.drawable.ic_cart),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-                    .padding(8.dp)
-                    .clickable {
-                        onCartClicked()
-                    },
-                contentScale = ContentScale.Inside
-            )
-        }
-
     }
 }
 
+@Composable
+fun SearchBar(value: String, onTextChanged: (String) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        TextField(
+            value = value,
+            onValueChange = onTextChanged,
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_search),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            placeholder = {
+                Text(
+                    text = "Search products...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun CategoryChip(category: String, selected: Boolean = false) {
+    Surface(
+        modifier = Modifier.padding(end = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    ) {
+        Text(
+            text = category.replaceFirstChar { it.uppercase() },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = if (selected) Color.White
+            else MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun ProductItem(product: Product, onClick: (Product) -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(160.dp)
+            .clickable { onClick(product) },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
+                AsyncImage(
+                    model = product.image,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+                ) {
+                    Text(
+                        text = "$${product.price}",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(
+                    text = product.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_star),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFFFFC107)
+                        )
+                        Text(
+                            text = "4.5",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = { /* Handle favorite */ },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_favorite),
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String, onViewAll: () -> Unit = {}) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        TextButton(onClick = onViewAll) {
+            Text(
+                text = "View all",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
 @Composable
 fun HomeContent(
     featured: List<Product>,
@@ -254,35 +453,6 @@ fun HomeContent(
     }
 }
 
-@Composable
-fun SearchBar(value: String, onTextChanged: (String) -> Unit) {
-
-    TextField(value = value,
-        onValueChange = onTextChanged,
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
-        leadingIcon = {
-            Image(
-                painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedContainerColor = Color.LightGray.copy(alpha = 0.3f),
-            unfocusedContainerColor = Color.LightGray.copy(alpha = 0.3f),
-        ),
-        placeholder = {
-            Text(
-                text = "Search for products", style = MaterialTheme.typography.bodySmall
-            )
-        })
-
-}
 
 @Composable
 fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) -> Unit) {
@@ -329,40 +499,3 @@ fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) ->
 }
 
 
-@Composable
-fun ProductItem(product: Product, onClick: (Product) -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .size(width = 126.dp, height = 144.dp)
-            .clickable { onClick(product) },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.3f))
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = product.image,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(96.dp)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = product.title,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 8.dp),
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "$${product.price}",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
