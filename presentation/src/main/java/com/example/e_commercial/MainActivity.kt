@@ -97,13 +97,14 @@ class MainActivity : ComponentActivity() {
                                 shouldShowBottomNav.value = false
                                 RegisterScreen(navController)
                             }
-                            composable<HomeScreen> {
-                                HomeScreen(navController)
-                                shouldShowBottomNav.value = true
-                            }
                             composable<CartScreen> {
                                 shouldShowBottomNav.value = true
                                 CartScreen(navController)
+                            }
+
+                            composable<HomeScreen> {
+                                shouldShowBottomNav.value = true
+                                HomeScreen(navController)
                             }
                             composable<OrdersScreen> {
                                 shouldShowBottomNav.value = true

@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -43,6 +46,7 @@ import com.example.e_commercial.model.UserAddress
 import com.example.e_commercial.navigation.HomeScreen
 import com.example.e_commercial.navigation.UserAddressRoute
 import com.example.e_commercial.navigation.UserAddressRouteWrapper
+import com.example.e_commercial.ui.feature.account.login.PurpleButton
 import com.example.e_commercial.ui.feature.user_address.USER_ADDRESS_SCREEN
 import com.example.e_commercial.utils.CurrencyUtils
 import org.koin.androidx.compose.koinViewModel
@@ -70,7 +74,9 @@ fun CartSummaryScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.align(
                     Alignment.Center
-                )
+                ),
+                fontWeight = FontWeight.Bold
+
             )
         }
         val uiState = viewModel.uiState.collectAsState()
@@ -136,9 +142,15 @@ fun CartSummaryScreen(
                         Button(onClick = {
                             navController.popBackStack(
                                 HomeScreen,
-                                inclusive = false
+                                inclusive = false,
                             )
-                        }) {
+                        },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PurpleButton,
+                                contentColor = Color.White,
+                            )
+
+                        ) {
                             Text(
                                 text = "Continue Shopping",
                                 style = MaterialTheme.typography.titleSmall
@@ -152,9 +164,14 @@ fun CartSummaryScreen(
             Button(
                 onClick = { viewModel.placeOrder(address.value!!) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = address.value != null
+                enabled = address.value != null,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PurpleButton,
+                    contentColor = Color.White,
+                    disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+                )
             ) {
-                Text(text = "Checkout", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Confirm Order", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -167,28 +184,113 @@ fun CartSummaryScreenContent(cartSummary: CartSummary) {
             .fillMaxWidth()
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.LightGray.copy(alpha = 0.4f))
-            .padding(8.dp)
+            .background(Color.White)
+            .padding(16.dp)
     ) {
+        // Order Summary Header
         item {
-            Text(
-                text = "Order Summary:",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_order),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                        .padding(6.dp)
+                )
+                Spacer(modifier = Modifier.size(12.dp))
+                Text(
+                    text = "Order Summary",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
+
+        // Products List Header
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .background(
+                        color = Color.LightGray.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_cart),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = "Items (${cartSummary.data.items.size})",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+        }
+
+        // Product Items
         items(cartSummary.data.items) { cartItem ->
             ProductRow(cartItem)
         }
-        item {
-            Column {
-                AmountRow("Subtotal", cartSummary.data.subtotal)
-                AmountRow(title = "Tax", amount = cartSummary.data.tax)
-                AmountRow("Shipping", cartSummary.data.shipping)
-                AmountRow("Discount", cartSummary.data.discount)
-                AmountRow("Total", cartSummary.data.total)
-            }
 
+        // Divider before summary
+        item {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.LightGray.copy(alpha = 0.5f))
+                    .padding(vertical = 8.dp)
+            )
+        }
+
+        // Price Summary
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                PriceSummaryRow(
+                    title = "Subtotal",
+                    amount = cartSummary.data.subtotal,
+                    icon = R.drawable.ic_subtotal
+                )
+                PriceSummaryRow(
+                    title = "Shipping",
+                    amount = cartSummary.data.shipping,
+                    icon = R.drawable.ic_shipping
+                )
+                PriceSummaryRow(
+                    title = "Tax",
+                    amount = cartSummary.data.tax,
+                    icon = R.drawable.ic_tax
+                )
+                if (cartSummary.data.discount > 0) {
+                    PriceSummaryRow(
+                        title = "Discount",
+                        amount = -cartSummary.data.discount,
+                        icon = R.drawable.ic_discount,
+                        isDiscount = true
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                TotalRow(amount = cartSummary.data.total)
+            }
         }
     }
 }
@@ -198,78 +300,160 @@ fun ProductRow(cartItemModel: CartItemModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.LightGray.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = cartItemModel.quantity.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(modifier = Modifier.size(12.dp))
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = cartItemModel.productName,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Text(
+                text = CurrencyUtils.formatPrice(cartItemModel.price),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        }
         Text(
-            text = cartItemModel.productName,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodySmall,
-            fontSize = 14.sp
-        )
-        Text(
-            text = "${CurrencyUtils.formatPrice(cartItemModel.price)} x ${cartItemModel.quantity}",
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 14.sp
+            text = CurrencyUtils.formatPrice(cartItemModel.price * cartItemModel.quantity),
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontWeight = FontWeight.SemiBold
+            )
         )
     }
 }
 
-
 @Composable
-fun AmountRow(title: String, amount: Double) {
+fun PriceSummaryRow(
+    title: String,
+    amount: Double,
+    icon: Int,
+    isDiscount: Boolean = false
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Image(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isDiscount) Color.Green.copy(alpha = 0.1f)
+                    else Color.LightGray.copy(alpha = 0.2f)
+                )
+                .padding(4.dp)
+        )
+        Spacer(modifier = Modifier.size(12.dp))
         Text(
             text = title,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodySmall,
-            fontSize = 14.sp
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
         )
         Text(
-            text = CurrencyUtils.formatPrice(amount),
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 14.sp
+            text = if (isDiscount) "- ${CurrencyUtils.formatPrice(amount)}"
+            else CurrencyUtils.formatPrice(amount),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium,
+                color = if (isDiscount) Color.Green else Color.Black
+            )
         )
     }
 }
 
+@Composable
+fun TotalRow(amount: Double) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_total),
+            contentDescription = null,
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .padding(6.dp)
+        )
+        Spacer(modifier = Modifier.size(12.dp))
+        Text(
+            text = "Total",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = CurrencyUtils.formatPrice(amount),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        )
+    }
+}
 
 @Composable
 fun AddressBar(address: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick.invoke() }
-            .padding(8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.2f))
+            .clickable { onClick() }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-
         Image(
-            painter = painterResource(id = R.drawable.ic_address), contentDescription = null,
+            painter = painterResource(id = R.drawable.ic_address),
+            contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray.copy(alpha = 0.4f)),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
             contentScale = ContentScale.Inside
         )
-        Spacer(modifier = Modifier.size(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(
                 text = "Shipping Address",
-                style = MaterialTheme.typography.titleSmall,
-                fontSize = 16.sp
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = address,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 14.sp,
-                color = Color.Gray
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
         }
-
     }
 }

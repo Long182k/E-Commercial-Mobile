@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,10 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -45,6 +49,7 @@ import com.example.data.model.response.CartItem
 import com.example.domain.model.CartItemModel
 import com.example.e_commercial.R
 import com.example.e_commercial.navigation.CartSummaryScreen
+import com.example.e_commercial.ui.feature.account.login.PurpleButton
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
@@ -64,20 +69,20 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
     }
     LaunchedEffect(uiState.value) {
         when (uiState.value) {
-            is CartEvent.Loading -> {
+            is CartViewModel.CartEvent.Loading -> {
                 loading.value = true
                 errorMsg.value = null
             }
 
-            is CartEvent.Error -> {
+            is CartViewModel.CartEvent.Error -> {
                 // Show error
                 loading.value = false
-                errorMsg.value = (uiState.value as CartEvent.Error).message
+                errorMsg.value = (uiState.value as CartViewModel.CartEvent.Error).message
             }
 
-            is CartEvent.Success -> {
+            is CartViewModel.CartEvent.Success -> {
                 loading.value = false
-                val data = (uiState.value as CartEvent.Success).message
+                val data = (uiState.value as CartViewModel.CartEvent.Success).message
                 if (data.isEmpty()) {
                     errorMsg.value = "No items in cart"
                 } else {
@@ -97,6 +102,26 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
+            // Back navigation button
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(35.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray.copy(alpha = 0.4f))
+                    .clickable {
+                        navController.navigateUp() // or popBackStack(HomeScreen, false)
+                    }
+                    .align(Alignment.TopStart)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_back),
+                    contentDescription = "Navigate back",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize()
+                )
+            }
             PullToRefreshContainer(
                 state = pullToRefreshState, modifier = Modifier.align(Alignment.TopCenter)
             )
@@ -106,14 +131,23 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                     .nestedScroll(pullToRefreshState.nestedScrollConnection)
                     .padding(16.dp)
             ) {
-                Text(text = "Cart", style = MaterialTheme.typography.titleSmall)
+//                Text(text = "Cart", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = "Cart",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(Alignment.CenterHorizontally),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
                 Spacer(modifier = Modifier.size(8.dp))
                 val shouldShowList = !loading.value && errorMsg.value == null
                 AnimatedVisibility(
                     visible = shouldShowList, enter = fadeIn(), modifier = Modifier.weight(1f)
                 ) {
                     LazyColumn {
-                        items(cartItems.value) { item ->
+                        items(items = cartItems.value, key = { item -> item.id }) { item ->
                             CartItem(item = item,
                                 onIncrement = { viewModel.incrementQuantity(it) },
                                 onDecrement = { viewModel.decrementQuantity(it) },
@@ -124,7 +158,12 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                 if (shouldShowList) {
                     Button(
                         onClick = { navController.navigate(CartSummaryScreen) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PurpleButton,
+                            contentColor = Color.White,
+                            disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+                        )
                     ) {
                         Text(text = "Checkout")
                     }
@@ -191,14 +230,16 @@ fun CartItem(
 
             IconButton(onClick = { onRemove(item) }) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_delete), contentDescription = null
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null
                 )
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onIncrement(item) }) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_add), contentDescription = null
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = null
                     )
                 }
                 Text(text = item.quantity.toString())

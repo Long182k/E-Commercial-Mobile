@@ -43,6 +43,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.e_commercial.R
 import com.example.e_commercial.model.UIProductModel
+import com.example.e_commercial.navigation.HomeScreen
+import com.example.e_commercial.ui.feature.account.login.PurpleButton
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -66,17 +68,26 @@ fun ProductDetailsScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            Image(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .size(48.dp)
+                    .padding(10.dp)
+                    .size(35.dp)
                     .clip(CircleShape)
                     .background(Color.LightGray.copy(alpha = 0.4f))
-                    .padding(8.dp)
+                    .clickable {
+                        navController.navigateUp()
+//                        navController.popBackStack(HomeScreen, false)
+                    }
                     .align(Alignment.TopStart)
-            )
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_back),
+                    contentDescription = "Navigate back",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize()
+                )
+            }
 
             Image(
                 painter = painterResource(id = R.drawable.ic_favorite),
@@ -160,9 +171,14 @@ fun ProductDetailsScreen(
             ) {
                 Button(
                     onClick = { viewModel.addProductToCart(product) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PurpleButton,
+                        contentColor = Color.White,
+                        disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+                    )
                 ) {
-                    Text(text = "Buy Now")
+                    Text(text = "Add to Cart")
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 IconButton(
@@ -201,6 +217,7 @@ fun ProductDetailsScreen(
                         (uiState.value as ProductDetailsEvent.Success).message,
                         Toast.LENGTH_LONG
                     ).show()
+                    navController.popBackStack(HomeScreen, false)
                 }
 
                 is ProductDetailsEvent.Error -> {
