@@ -19,7 +19,8 @@ class CartViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<CartEvent>(CartEvent.Loading)
     val uiState = _uiState.asStateFlow()
-    val userDomainModel  = EcommercialSession.getUser()
+    val userDomainModel = EcommercialSession.getUser()
+
     init {
         getCart()
     }
@@ -42,19 +43,19 @@ class CartViewModel(
     }
 
     fun incrementQuantity(cartItem: CartItemModel) {
-        if(cartItem.quantity==10) return
+        if (cartItem.quantity == 10) return
         updateQuantity(cartItem.copy(quantity = cartItem.quantity + 1))
     }
 
     fun decrementQuantity(cartItem: CartItemModel) {
-        if(cartItem.quantity==1) return
+        if (cartItem.quantity == 1) return
         updateQuantity(cartItem.copy(quantity = cartItem.quantity - 1))
     }
 
     private fun updateQuantity(cartItem: CartItemModel) {
         viewModelScope.launch {
             _uiState.value = CartEvent.Loading
-            val result = updateQuantityUseCase.execute(cartItem,userDomainModel!!.id!!.toLong())
+            val result = updateQuantityUseCase.execute(cartItem, userDomainModel!!.id!!.toLong())
             when (result) {
                 is com.example.domain.network.ResultWrapper.Success -> {
                     _uiState.value = CartEvent.Success(result.value.data)
@@ -70,21 +71,24 @@ class CartViewModel(
     fun removeItem(cartItem: CartItemModel) {
         viewModelScope.launch {
             _uiState.value = CartEvent.Loading
-            val result = deleteItem.execute(cartItem.id, 1)
+            val result = deleteItem.execute(cartItem.id, userDomainModel!!.id!!.toLong())
             when (result) {
                 is com.example.domain.network.ResultWrapper.Success -> {
                     _uiState.value = CartEvent.Success(result.value.data)
                 }
+
                 is com.example.domain.network.ResultWrapper.Failure -> {
                     _uiState.value = CartEvent.Error("Something went wrong!")
                 }
             }
         }
     }
-}
 
-sealed class CartEvent {
-    data object Loading : CartEvent()
-    data class Success(val message: List<CartItemModel>) : CartEvent()
-    data class Error(val message: String) : CartEvent()
+
+    sealed class CartEvent {
+        data object Loading : CartEvent()
+        data class Success(val message: List<CartItemModel>) : CartEvent()
+        data class Error(val message: String) : CartEvent()
+    }
+
 }

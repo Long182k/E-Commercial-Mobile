@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +31,9 @@ import com.example.e_commercial.navigation.RegisterScreen
 import com.example.e_commercial.ui.feature.account.login.LoginState
 import com.example.e_commercial.ui.feature.account.login.LoginViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.example.e_commercial.ui.feature.account.login.PurpleButton
+
+
 
 @Composable
 fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = koinViewModel()) {
@@ -133,7 +138,13 @@ fun RegisterContent(
             onClick = {
                 onRegisterClicked(email.value, password.value, name.value)
             }, modifier = Modifier.fillMaxWidth(),
-            enabled = email.value.isNotEmpty() && password.value.isNotEmpty() && name.value.isNotEmpty()
+            enabled = email.value.isNotEmpty() && password.value.isNotEmpty() && name.value.isNotEmpty(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PurpleButton,
+                contentColor = Color.White,
+                disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+            )
+
         ) {
             Text(text = stringResource(id = R.string.register))
         }

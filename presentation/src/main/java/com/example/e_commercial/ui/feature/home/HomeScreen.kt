@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -70,15 +73,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
     }
     val feature = remember {
         mutableStateOf<List<Product>>(emptyList())
-
     }
     val popular = remember {
         mutableStateOf<List<Product>>(emptyList())
-
     }
     val categories = remember {
         mutableStateOf<List<String>>(emptyList())
     }
+
     Scaffold {
         Surface(
             modifier = Modifier
@@ -116,13 +118,22 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
                     navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
                 },
                 onCartClicked = {
-                    navController.navigate(CartScreen)
+                    // Updated navigation logic for cart
+                    navController.navigate(CartScreen) {
+                        // Save the current state when navigating to cart
+                        launchSingleTop = true
+                        // Restore the state when returning from cart
+                        restoreState = true
+                        // This ensures we can navigate back to home
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                    }
                 }
             )
         }
     }
 }
-
 @Composable
 fun ProfileHeader(onCartClicked: () -> Unit) {
     Card(
@@ -165,12 +176,12 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Hello,",
+                            text = "Online Shopping",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = "Drake",
+                            text = "DRAKE",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -180,7 +191,8 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {                    IconButton(
+                ) {
+                    IconButton(
                         onClick = { /* Handle notification */ },
                         modifier = Modifier
                             .size(40.dp)
@@ -201,7 +213,7 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_cart),
-                            contentDescription = null,
+                            contentDescription = "Navigate to Cart",
                             tint = Color.White
                         )
                     }
@@ -355,29 +367,7 @@ fun ProductItem(product: Product, onClick: (Product) -> Unit) {
     }
 }
 
-@Composable
-fun SectionTitle(title: String, onViewAll: () -> Unit = {}) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        TextButton(onClick = onViewAll) {
-            Text(
-                text = "View all",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-    }
-}
+
 @Composable
 fun HomeContent(
     featured: List<Product>,
@@ -388,6 +378,10 @@ fun HomeContent(
     onClick: (Product) -> Unit,
     onCartClicked: () -> Unit
 ) {
+    // Create separate state variables for featured and popular sections
+    val viewAllFeaturedState = remember { mutableStateOf(false) }
+    val viewAllPopularState = remember { mutableStateOf(false) }
+
     LazyColumn {
         item {
             ProfileHeader(onCartClicked)
@@ -395,6 +389,7 @@ fun HomeContent(
             SearchBar(value = "", onTextChanged = {})
             Spacer(modifier = Modifier.size(16.dp))
         }
+
         item {
             if (isLoading) {
                 Column(
@@ -406,56 +401,148 @@ fun HomeContent(
                     Text(text = "Loading...", style = MaterialTheme.typography.bodyMedium)
                 }
             }
+
             errorMsg?.let {
                 Text(text = it, style = MaterialTheme.typography.bodyMedium)
             }
+
+            // Categories Section
             if (categories.isNotEmpty()) {
                 LazyRow {
                     items(categories, key = { it }) { category ->
-                        val isVisible = remember {
-                            mutableStateOf(false)
-                        }
+                        val isVisible = remember { mutableStateOf(false) }
                         LaunchedEffect(true) {
                             isVisible.value = true
                         }
                         AnimatedVisibility(
-                            visible = isVisible.value, enter = fadeIn() + expandVertically()
+                            visible = isVisible.value,
+                            enter = fadeIn() + expandVertically()
                         ) {
-                            Text(
-                                text = category.replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .padding(8.dp)
-                            )
+                            CategoryChip(category = category)
                         }
                     }
-
                 }
                 Spacer(modifier = Modifier.size(16.dp))
             }
+        }
+
+        // Featured Products Section
+        item {
             if (featured.isNotEmpty()) {
-                HomeProductRow(products = featured, title = "Featured", onClick = onClick)
+                Column {
+                    // Featured Products Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Featured Products",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(
+                            onClick = { viewAllFeaturedState.value = !viewAllFeaturedState.value }
+                        ) {
+                            Text(if (viewAllFeaturedState.value) "Show Less" else "View All")
+                        }
+                    }
+
+                    if (viewAllFeaturedState.value) {
+                        // Grid view for featured products
+                        val featuredChunked = featured.chunked(2)
+                        featuredChunked.forEach { productPair ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                productPair.forEach { product ->
+                                    ProductItem(
+                                        product = product,
+                                        onClick = onClick
+                                    )
+                                }
+                                // If odd number of products, add empty space
+                                if (productPair.size == 1) {
+                                    Spacer(modifier = Modifier.width(160.dp))
+                                }
+                            }
+                        }
+                    } else {
+                        // Horizontal scroll view for featured products
+                        LazyRow {
+                            items(featured, key = { it.id }) { product ->
+                                ProductItem(product = product, onClick = onClick)
+                            }
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.size(16.dp))
             }
+        }
+
+        // Popular Products Section
+        item {
             if (popularProducts.isNotEmpty()) {
-                HomeProductRow(
-                    products = popularProducts,
-                    title = "Popular Products",
-                    onClick = onClick
-                )
+                Column {
+                    // Popular Products Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Popular Products",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(
+                            onClick = { viewAllPopularState.value = !viewAllPopularState.value }
+                        ) {
+                            Text(if (viewAllPopularState.value) "Show Less" else "View All")
+                        }
+                    }
+
+                    if (viewAllPopularState.value) {
+                        // Grid view for popular products
+                        val popularChunked = popularProducts.chunked(2)
+                        popularChunked.forEach { productPair ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                productPair.forEach { product ->
+                                    ProductItem(
+                                        product = product,
+                                        onClick = onClick
+                                    )
+                                }
+                                // If odd number of products, add empty space
+                                if (productPair.size == 1) {
+                                    Spacer(modifier = Modifier.width(160.dp))
+                                }
+                            }
+                        }
+                    } else {
+                        // Horizontal scroll view for popular products
+                        LazyRow {
+                            items(popularProducts, key = { it.id }) { product ->
+                                ProductItem(product = product, onClick = onClick)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-
 @Composable
-fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) -> Unit) {
+fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) -> Unit, onViewAll: () -> Unit) {
     Column {
         Box(
             modifier = Modifier
@@ -465,18 +552,16 @@ fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) ->
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(
-                    Alignment.CenterStart
-                ),
+                modifier = Modifier.align(Alignment.CenterStart),
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = "View all",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.align(
-                    Alignment.CenterEnd
-                )
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable { onViewAll() }
             )
         }
         Spacer(modifier = Modifier.size(8.dp))
@@ -488,14 +573,13 @@ fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) ->
                 LaunchedEffect(true) {
                     isVisible.value = true
                 }
-                androidx.compose.animation.AnimatedVisibility(
+                AnimatedVisibility(
                     visible = isVisible.value, enter = fadeIn() + expandVertically()
                 ) {
-                    ProductItem(product = product, onClick)
+                    ProductItem(product = product, onClick = onClick)
                 }
             }
         }
     }
 }
-
 
