@@ -6,5 +6,6 @@ data class OrdersData(
     val orderDate: String,
     val status: String,
     val totalAmount: Double,
-    val userId: Int
+    val userId: Int,
+    val address: AddressDomainModel,
 )

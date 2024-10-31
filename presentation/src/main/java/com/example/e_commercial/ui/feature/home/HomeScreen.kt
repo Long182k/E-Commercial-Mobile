@@ -351,16 +351,6 @@ fun ProductItem(product: Product, onClick: (Product) -> Unit) {
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
-                    IconButton(
-                        onClick = { /* Handle favorite */ },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_favorite),
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    }
                 }
             }
         }

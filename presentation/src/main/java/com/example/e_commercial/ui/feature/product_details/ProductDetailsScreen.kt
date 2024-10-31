@@ -88,18 +88,6 @@ fun ProductDetailsScreen(
                         .fillMaxSize()
                 )
             }
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_favorite),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.4f))
-                    .padding(8.dp)
-                    .align(Alignment.TopEnd)
-            )
         }
         Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -152,18 +140,6 @@ fun ProductDetailsScreen(
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = "Size",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-                repeat(4) {
-                    SizeItem(size = "${it + 1}", isSelected = it == 0) {}
-                }
-            }
-            Spacer(modifier = Modifier.size(16.dp))
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -179,18 +155,6 @@ fun ProductDetailsScreen(
                     )
                 ) {
                     Text(text = "Add to Cart")
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                IconButton(
-                    onClick = { viewModel.addProductToCart(product) },
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    colors = IconButtonDefaults.iconButtonColors()
-                        .copy(containerColor = Color.LightGray.copy(alpha = 0.4f))
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_cart),
-                        contentDescription = null
-                    )
                 }
             }
 

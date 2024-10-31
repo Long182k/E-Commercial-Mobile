@@ -10,16 +10,18 @@ data class OrderListData(
     val orderDate: String,
     val status: String,
     val totalAmount: Double,
-    val userId: Int
+    val userId: Int,
+    val address: AddressResponse,
 ) {
-    fun toDomainResponse():  OrdersData {
+    fun toDomainResponse(): OrdersData {
         return OrdersData(
             id = id,
             items = items.map { it.toDomainResponse() },
             orderDate = orderDate,
             status = status,
             totalAmount = totalAmount,
-            userId = userId
+            userId = userId,
+            address = address.toDomain(),
         )
     }
 }
