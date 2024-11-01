@@ -16,6 +16,9 @@ object RegisterScreen
 object CartScreen
 
 @Serializable
+object NotificationScreen
+
+@Serializable
 object OrdersScreen
 
 @Serializable

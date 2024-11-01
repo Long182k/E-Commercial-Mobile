@@ -43,7 +43,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.domain.model.OrdersData
+import com.example.domain.model.UserDomainModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.window.Dialog
 
 private val PurpleButton = Color(0xFF6B4EFF)
 private val GreenStatus = Color(0xFF4CAF50)
@@ -142,8 +147,13 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
 }
 
 @Composable
-fun OrderList(orders: List<OrdersData>) {
-    if (orders.isEmpty()) {
+fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewModel()) {
+    // Sort the orders by ID in descending order
+    val sortedOrders = orders.sortedByDescending { it.id }
+
+    val user by viewModel.user.collectAsState()
+
+    if (sortedOrders.isEmpty()) {
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -156,15 +166,20 @@ fun OrderList(orders: List<OrdersData>) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(orders, key = { order -> order.id }) {
-                OrderItem(order = it)
+            items(sortedOrders, key = { order -> order.id }) { order ->
+                user?.let { userModel ->
+                    OrderItem(order = order, user = userModel)
+                }
             }
         }
     }
 }
 
+
 @Composable
-fun OrderItem(order: OrdersData) {
+fun OrderItem(order: OrdersData, user: UserDomainModel) {
+    var showDetails by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -232,7 +247,7 @@ fun OrderItem(order: OrdersData) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedButton(
-                    onClick = { /* Handle details click */ },
+                    onClick = { showDetails = true },
                     shape = RoundedCornerShape(24.dp)
                 ) {
                     Text("Details")
@@ -244,6 +259,170 @@ fun OrderItem(order: OrdersData) {
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
+            }
+        }
+    }
+
+    if (showDetails) {
+        Dialog(
+            onDismissRequest = { showDetails = false }
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Order Details",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { showDetails = false }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close dialog"
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // User Information Section
+                    Text(
+                        text = "Customer Information",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Name: ${user.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray
+                    )
+
+                    Text(
+                        text = "Email: ${user.email}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray
+                    )
+                    // Add Address Information
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Address:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${order.address.addressLine}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray
+                    )
+                    Text(
+                        text = "${order.address.city}, ${order.address.state}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray
+                    )
+                    Text(
+                        text = "${order.address.postalCode}, ${order.address.country}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Items List
+                    Text(
+                        text = "Items",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    order.items.forEach { item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = item.productName,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = "${item.quantity}x · $${item.price}",
+                                    color = TextGray,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Text(
+                                text = "$${item.price * item.quantity}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Order Summary
+                    Text(
+                        text = "Order Summary",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = "$${order.items.sumOf { it.price * it.quantity }}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Status
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Status",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = order.status,
+                            color = if (order.status == "Delivered") GreenStatus else TextGray,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         }
     }

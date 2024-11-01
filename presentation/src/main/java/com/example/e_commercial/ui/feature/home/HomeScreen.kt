@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,8 +22,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,34 +49,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCbrt
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.domain.model.Product
 import com.example.e_commercial.R
 import com.example.e_commercial.model.UIProductModel
 import com.example.e_commercial.navigation.CartScreen
+import com.example.e_commercial.navigation.NotificationScreen
 import com.example.e_commercial.navigation.ProductDetails
 import org.koin.androidx.compose.koinViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.e_commercial.ui.feature.profile.ProfileViewModel
+
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinViewModel()) {
     val uiState = viewModel.uiState.collectAsState()
-    val loading = remember {
-        mutableStateOf(false)
-    }
-    val error = remember {
-        mutableStateOf<String?>(null)
-    }
-    val feature = remember {
-        mutableStateOf<List<Product>>(emptyList())
-    }
-    val popular = remember {
-        mutableStateOf<List<Product>>(emptyList())
-    }
-    val categories = remember {
-        mutableStateOf<List<String>>(emptyList())
-    }
+    val loading = remember { mutableStateOf(false) }
+    val error = remember { mutableStateOf<String?>(null) }
+    val feature = remember { mutableStateOf<List<Product>>(emptyList()) }
+    val popular = remember { mutableStateOf<List<Product>>(emptyList()) }
+    val categories = remember { mutableStateOf<List<String>>(emptyList()) }
 
     Scaffold {
         Surface(
@@ -109,33 +100,36 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
                 }
             }
             HomeContent(
-                feature.value,
-                popular.value,
-                categories.value,
-                loading.value,
-                error.value,
+                navController = navController, // Pass navController to HomeContent
+                featured = feature.value,
+                popularProducts = popular.value,
+                categories = categories.value,
+                isLoading = loading.value,
+                errorMsg = error.value,
                 onClick = {
                     navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
                 },
                 onCartClicked = {
-                    // Updated navigation logic for cart
                     navController.navigate(CartScreen) {
-                        // Save the current state when navigating to cart
                         launchSingleTop = true
-                        // Restore the state when returning from cart
                         restoreState = true
-                        // This ensures we can navigate back to home
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                     }
                 }
             )
         }
     }
 }
+
 @Composable
-fun ProfileHeader(onCartClicked: () -> Unit) {
+fun ProfileHeader(
+    onCartClicked: () -> Unit,
+    navController: NavController,
+    viewModel: ProfileViewModel = viewModel() // Use ProfileViewModel here
+) {
+    // Access the user state directly with .value
+    val user = viewModel.user.observeAsState()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -161,9 +155,7 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_profile),
                         contentDescription = null,
@@ -181,7 +173,7 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
                             color = Color.White.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = "DRAKE",
+                            text = user.value?.name ?: "User", // Access user.name with .value
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -189,11 +181,9 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
                     }
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(
-                        onClick = { /* Handle notification */ },
+                        onClick = { navController.navigate(NotificationScreen) },
                         modifier = Modifier
                             .size(40.dp)
                             .background(Color.White.copy(alpha = 0.2f), CircleShape)
@@ -222,6 +212,7 @@ fun ProfileHeader(onCartClicked: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun SearchBar(value: String, onTextChanged: (String) -> Unit) {
@@ -351,16 +342,6 @@ fun ProductItem(product: Product, onClick: (Product) -> Unit) {
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
-                    IconButton(
-                        onClick = { /* Handle favorite */ },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_favorite),
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    }
                 }
             }
         }
@@ -370,6 +351,7 @@ fun ProductItem(product: Product, onClick: (Product) -> Unit) {
 
 @Composable
 fun HomeContent(
+    navController: NavController,
     featured: List<Product>,
     popularProducts: List<Product>,
     categories: List<String>,
@@ -378,13 +360,12 @@ fun HomeContent(
     onClick: (Product) -> Unit,
     onCartClicked: () -> Unit
 ) {
-    // Create separate state variables for featured and popular sections
     val viewAllFeaturedState = remember { mutableStateOf(false) }
     val viewAllPopularState = remember { mutableStateOf(false) }
 
     LazyColumn {
         item {
-            ProfileHeader(onCartClicked)
+            ProfileHeader(onCartClicked = onCartClicked, navController = navController) // Pass navController here
             Spacer(modifier = Modifier.size(16.dp))
             SearchBar(value = "", onTextChanged = {})
             Spacer(modifier = Modifier.size(16.dp))
@@ -430,7 +411,6 @@ fun HomeContent(
         item {
             if (featured.isNotEmpty()) {
                 Column {
-                    // Featured Products Header
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -451,7 +431,6 @@ fun HomeContent(
                     }
 
                     if (viewAllFeaturedState.value) {
-                        // Grid view for featured products
                         val featuredChunked = featured.chunked(2)
                         featuredChunked.forEach { productPair ->
                             Row(
@@ -464,14 +443,12 @@ fun HomeContent(
                                         onClick = onClick
                                     )
                                 }
-                                // If odd number of products, add empty space
                                 if (productPair.size == 1) {
                                     Spacer(modifier = Modifier.width(160.dp))
                                 }
                             }
                         }
                     } else {
-                        // Horizontal scroll view for featured products
                         LazyRow {
                             items(featured, key = { it.id }) { product ->
                                 ProductItem(product = product, onClick = onClick)
@@ -487,7 +464,6 @@ fun HomeContent(
         item {
             if (popularProducts.isNotEmpty()) {
                 Column {
-                    // Popular Products Header
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -508,7 +484,6 @@ fun HomeContent(
                     }
 
                     if (viewAllPopularState.value) {
-                        // Grid view for popular products
                         val popularChunked = popularProducts.chunked(2)
                         popularChunked.forEach { productPair ->
                             Row(
@@ -521,14 +496,12 @@ fun HomeContent(
                                         onClick = onClick
                                     )
                                 }
-                                // If odd number of products, add empty space
                                 if (productPair.size == 1) {
                                     Spacer(modifier = Modifier.width(160.dp))
                                 }
                             }
                         }
                     } else {
-                        // Horizontal scroll view for popular products
                         LazyRow {
                             items(popularProducts, key = { it.id }) { product ->
                                 ProductItem(product = product, onClick = onClick)
@@ -582,4 +555,3 @@ fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) ->
         }
     }
 }
-
