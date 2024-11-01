@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ import com.example.e_commercial.navigation.CartScreen
 import com.example.e_commercial.navigation.CartSummaryScreen
 import com.example.e_commercial.navigation.HomeScreen
 import com.example.e_commercial.navigation.LoginScreen
+import com.example.e_commercial.navigation.NotificationScreen
 import com.example.e_commercial.navigation.OrdersScreen
 import com.example.e_commercial.navigation.ProductDetails
 import com.example.e_commercial.navigation.ProfileScreen
@@ -47,12 +49,16 @@ import com.example.e_commercial.ui.feature.account.login.LoginScreen
 import com.example.e_commercial.ui.feature.account.register.RegisterScreen
 import com.example.e_commercial.ui.feature.cart.CartScreen
 import com.example.e_commercial.ui.feature.home.HomeScreen
+import com.example.e_commercial.ui.feature.notifications.NotificationScreen
+import com.example.e_commercial.ui.feature.orders.OrdersEvent
 import com.example.e_commercial.ui.feature.orders.OrdersScreen
+import com.example.e_commercial.ui.feature.orders.OrdersViewModel
 import com.example.e_commercial.ui.feature.product_details.ProductDetailsScreen
 import com.example.e_commercial.ui.feature.profile.ProfileScreen
 import com.example.e_commercial.ui.feature.summary.CartSummaryScreen
 import com.example.e_commercial.ui.feature.user_address.UserAddressScreen
 import com.example.e_commercial.ui.theme.ECommercialTheme
+import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.typeOf
 
 class MainActivity : ComponentActivity() {
@@ -135,6 +141,27 @@ class MainActivity : ComponentActivity() {
                                     userAddress = userAddressRoute.userAddressWrapper.userAddress
                                 )
                             }
+                            composable<NotificationScreen> {
+                                shouldShowBottomNav.value = false
+
+                                // Obtain OrdersViewModel instance using koinViewModel, viewModel, or however you are injecting it
+                                val viewModel: OrdersViewModel = koinViewModel() // or viewModel() if you're not using Koin/Hilt
+
+                                // Collect the orders event state directly
+                                val uiState = viewModel.ordersEvent.collectAsState()
+
+                                val orders = if (uiState.value is OrdersEvent.Success) {
+                                    (uiState.value as OrdersEvent.Success).data.sortedByDescending { it.orderDate }
+                                } else {
+                                    emptyList() // Handle loading and error states as appropriate
+                                }
+
+                                NotificationScreen(
+                                    navController = navController,
+                                    orders = orders
+                                )
+                            }
+
                         }
                     }
                 }

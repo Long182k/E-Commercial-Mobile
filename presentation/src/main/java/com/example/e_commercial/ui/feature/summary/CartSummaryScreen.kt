@@ -47,6 +47,7 @@ import com.example.e_commercial.navigation.HomeScreen
 import com.example.e_commercial.navigation.UserAddressRoute
 import com.example.e_commercial.navigation.UserAddressRouteWrapper
 import com.example.e_commercial.ui.feature.account.login.PurpleButton
+import com.example.e_commercial.ui.feature.payment.PaymentDialog
 import com.example.e_commercial.ui.feature.user_address.USER_ADDRESS_SCREEN
 import com.example.e_commercial.utils.CurrencyUtils
 import org.koin.androidx.compose.koinViewModel
@@ -55,9 +56,8 @@ import org.koin.androidx.compose.koinViewModel
 fun CartSummaryScreen(
     navController: NavController, viewModel: CartSummaryViewModel = koinViewModel()
 ) {
-    val address = remember {
-        mutableStateOf<UserAddress?>(null)
-    }
+    val address = remember { mutableStateOf<UserAddress?>(null) }
+    val showPaymentDialog = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -160,23 +160,38 @@ fun CartSummaryScreen(
                 }
             }
         }
+
         if (uiState.value !is CartSummaryEvent.PlaceOrder) {
             Button(
-                onClick = { viewModel.placeOrder(address.value!!) },
+                onClick = {
+                    if (address.value != null) {
+                        showPaymentDialog.value = true // Access the mutable state directly
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = address.value != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PurpleButton,
                     contentColor = Color.White,
                     disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
-                )
+                ),
+                enabled = address.value != null
             ) {
-                Text(text = "Confirm Order", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Proceed to Payment", style = MaterialTheme.typography.titleMedium)
             }
+        }
+
+        // Show Payment Dialog
+        if (showPaymentDialog.value) {
+            PaymentDialog(
+                onDismiss = { showPaymentDialog.value = false },
+                onConfirmPayment = { cardNumber, expiryDate, cvv ->
+                    showPaymentDialog.value = false
+                    viewModel.placeOrder(address.value!!)
+                }
+            )
         }
     }
 }
-
 @Composable
 fun CartSummaryScreenContent(cartSummary: CartSummary) {
     LazyColumn(

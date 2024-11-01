@@ -148,9 +148,12 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
 
 @Composable
 fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewModel()) {
+    // Sort the orders by ID in descending order
+    val sortedOrders = orders.sortedByDescending { it.id }
+
     val user by viewModel.user.collectAsState()
 
-    if (orders.isEmpty()) {
+    if (sortedOrders.isEmpty()) {
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -163,7 +166,7 @@ fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewMod
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(orders, key = { order -> order.id }) { order ->
+            items(sortedOrders, key = { order -> order.id }) { order ->
                 user?.let { userModel ->
                     OrderItem(order = order, user = userModel)
                 }
@@ -171,6 +174,7 @@ fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewMod
         }
     }
 }
+
 
 @Composable
 fun OrderItem(order: OrdersData, user: UserDomainModel) {
