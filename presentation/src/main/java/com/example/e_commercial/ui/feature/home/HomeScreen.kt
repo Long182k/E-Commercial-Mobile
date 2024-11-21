@@ -72,6 +72,24 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
     val popular = remember { mutableStateOf<List<Product>>(emptyList()) }
     val categories = remember { mutableStateOf<List<String>>(emptyList()) }
 
+    val searchQuery = remember { mutableStateOf("") }
+    val filteredFeatured = remember { mutableStateOf<List<Product>>(emptyList()) }
+    val filteredPopular = remember { mutableStateOf<List<Product>>(emptyList()) }
+
+    LaunchedEffect(searchQuery.value, feature.value, popular.value) {
+        val query = searchQuery.value
+        filteredFeatured.value = if (query.isBlank()) {
+            feature.value
+        } else {
+            feature.value.filter { it.title.contains(query, ignoreCase = true) }
+        }
+        filteredPopular.value = if (query.isBlank()) {
+            popular.value
+        } else {
+            popular.value.filter { it.title.contains(query, ignoreCase = true) }
+        }
+    }
+
     Scaffold {
         Surface(
             modifier = Modifier
@@ -100,12 +118,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
                 }
             }
             HomeContent(
-                navController = navController, // Pass navController to HomeContent
-                featured = feature.value,
-                popularProducts = popular.value,
+                navController = navController,
+                featured = filteredFeatured.value,
+                popularProducts = filteredPopular.value,
                 categories = categories.value,
                 isLoading = loading.value,
                 errorMsg = error.value,
+                searchQuery = searchQuery.value,
+                onSearchQueryChange = { searchQuery.value = it },
                 onClick = {
                     navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
                 },
@@ -357,6 +377,8 @@ fun HomeContent(
     categories: List<String>,
     isLoading: Boolean = false,
     errorMsg: String? = null,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     onClick: (Product) -> Unit,
     onCartClicked: () -> Unit
 ) {
@@ -367,7 +389,7 @@ fun HomeContent(
         item {
             ProfileHeader(onCartClicked = onCartClicked, navController = navController) // Pass navController here
             Spacer(modifier = Modifier.size(16.dp))
-            SearchBar(value = "", onTextChanged = {})
+            SearchBar(value = searchQuery, onTextChanged = onSearchQueryChange)
             Spacer(modifier = Modifier.size(16.dp))
         }
 
@@ -391,16 +413,7 @@ fun HomeContent(
             if (categories.isNotEmpty()) {
                 LazyRow {
                     items(categories, key = { it }) { category ->
-                        val isVisible = remember { mutableStateOf(false) }
-                        LaunchedEffect(true) {
-                            isVisible.value = true
-                        }
-                        AnimatedVisibility(
-                            visible = isVisible.value,
-                            enter = fadeIn() + expandVertically()
-                        ) {
-                            CategoryChip(category = category)
-                        }
+                        CategoryChip(category = category)
                     }
                 }
                 Spacer(modifier = Modifier.size(16.dp))
@@ -514,44 +527,3 @@ fun HomeContent(
     }
 }
 
-@Composable
-fun HomeProductRow(products: List<Product>, title: String, onClick: (Product) -> Unit, onViewAll: () -> Unit) {
-    Column {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.CenterStart),
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = "View all",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .clickable { onViewAll() }
-            )
-        }
-        Spacer(modifier = Modifier.size(8.dp))
-        LazyRow {
-            items(products, key = { it.id }) { product ->
-                val isVisible = remember {
-                    mutableStateOf(false)
-                }
-                LaunchedEffect(true) {
-                    isVisible.value = true
-                }
-                AnimatedVisibility(
-                    visible = isVisible.value, enter = fadeIn() + expandVertically()
-                ) {
-                    ProductItem(product = product, onClick = onClick)
-                }
-            }
-        }
-    }
-}
