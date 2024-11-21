@@ -54,7 +54,20 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinVi
                 }
             }
             is LoginState.Error -> {
-                Text(text = state.message)
+                Text(
+                    text = state.message,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(8.dp)
+                )
+                LoginContent(
+                    onSignInClicked = { email, password ->
+                        viewModel.login(email, password)
+                    },
+                    onRegisterClick = {
+                        navController.navigate(RegisterScreen)
+                    }
+                )
             }
             is LoginState.Loading -> {
                 CircularProgressIndicator()

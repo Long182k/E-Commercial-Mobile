@@ -142,13 +142,17 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
 
     override suspend fun login(email: String, password: String): ResultWrapper<UserDomainModel> {
         val url = "$baseUrl/login"
-        return makeWebRequest(url = url,
+        return makeWebRequest(
+            url = url,
             method = HttpMethod.Post,
             body = LoginRequest(email, password),
             mapper = { user: UserAuthResponse ->
-                user.data.toDomainModel()
-            })
+                user.data?.toDomainModel()
+                    ?: throw IllegalStateException("Missing 'data' field in UserAuthResponse")
+            }
+        )
     }
+
 
     override suspend fun register(
         email: String,
@@ -156,13 +160,17 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
         name: String
     ): ResultWrapper<UserDomainModel> {
         val url = "$baseUrl/signup"
-        return makeWebRequest(url = url,
+        return makeWebRequest(
+            url = url,
             method = HttpMethod.Post,
             body = RegisterRequest(email, password, name),
             mapper = { user: UserAuthResponse ->
-                user.data.toDomainModel()
-            })
+                user.data?.toDomainModel()
+                    ?: throw IllegalStateException("Missing 'data' field in UserAuthResponse")
+            }
+        )
     }
+
 
     suspend inline fun <reified T, R> makeWebRequest(
         url: String,
