@@ -37,17 +37,16 @@ import com.example.e_commercial.ui.feature.account.login.PurpleButton
 
 @Composable
 fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = koinViewModel()) {
-
-    val loginState = viewModel.registerState.collectAsState()
+    val registerState = viewModel.registerState.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when (val state = loginState.value) {
+        when (val state = registerState.value) {
             is RegisterState.Success -> {
-                LaunchedEffect(loginState.value) {
+                LaunchedEffect(registerState.value) {
                     navController.navigate(HomeScreen) {
                         popUpTo(HomeScreen) {
                             inclusive = true
@@ -57,8 +56,20 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
             }
 
             is RegisterState.Error -> {
-                Text(text = state.message)
-                // Show error message
+                Text(
+                    text = state.message,
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(8.dp)
+                )
+                RegisterContent(
+                    onRegisterClicked = { email, password, name ->
+                        viewModel.register(email = email, password = password, name = name)
+                    },
+                    onSignInClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
             is RegisterState.Loading -> {
@@ -67,32 +78,28 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
             }
 
             else -> {
-                RegisterContent(onRegisterClicked = { email, password, name ->
-                    viewModel.register(email = email, password = password, name = name)
-                },
+                RegisterContent(
+                    onRegisterClicked = { email, password, name ->
+                        viewModel.register(email = email, password = password, name = name)
+                    },
                     onSignInClick = {
                         navController.popBackStack()
-                    })
+                    }
+                )
             }
         }
     }
 }
-
 
 @Composable
 fun RegisterContent(
     onRegisterClicked: (String, String, String) -> Unit,
     onSignInClick: () -> Unit
 ) {
-    val email = remember {
-        mutableStateOf("")
-    }
-    val password = remember {
-        mutableStateOf("")
-    }
-    val name = remember {
-        mutableStateOf("")
-    }
+    val email = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val name = remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -100,13 +107,14 @@ fun RegisterContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = stringResource(id = R.string.register),
+            style = MaterialTheme.typography.titleLarge
+        )
 
-        Text(text = stringResource(id = R.string.register), style = MaterialTheme.typography.titleLarge)
         OutlinedTextField(
             value = name.value,
-            onValueChange = {
-                name.value = it
-            },
+            onValueChange = { name.value = it },
             modifier = Modifier
                 .padding(vertical = 4.dp)
                 .fillMaxWidth(),
@@ -115,43 +123,41 @@ fun RegisterContent(
 
         OutlinedTextField(
             value = email.value,
-            onValueChange = {
-                email.value = it
-            },
+            onValueChange = { email.value = it },
             modifier = Modifier
                 .padding(vertical = 4.dp)
                 .fillMaxWidth(),
             label = { Text(text = stringResource(id = R.string.email)) }
         )
+
         OutlinedTextField(
             value = password.value,
-            onValueChange = {
-                password.value = it
-            },
+            onValueChange = { password.value = it },
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
             label = { Text(text = stringResource(id = R.string.password)) },
             visualTransformation = PasswordVisualTransformation()
         )
+
         Button(
-            onClick = {
-                onRegisterClicked(email.value, password.value, name.value)
-            }, modifier = Modifier.fillMaxWidth(),
+            onClick = { onRegisterClicked(email.value, password.value, name.value) },
+            modifier = Modifier.fillMaxWidth(),
             enabled = email.value.isNotEmpty() && password.value.isNotEmpty() && name.value.isNotEmpty(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = PurpleButton,
                 contentColor = Color.White,
                 disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
             )
-
         ) {
             Text(text = stringResource(id = R.string.register))
         }
-        Text(text = stringResource(id = R.string.already_have_an_account), modifier = Modifier
-            .padding(8.dp)
-            .clickable {
-                onSignInClick()
-            })
+
+        Text(
+            text = stringResource(id = R.string.already_have_an_account),
+            modifier = Modifier
+                .padding(8.dp)
+                .clickable { onSignInClick() }
+        )
     }
 }

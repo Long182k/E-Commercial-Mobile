@@ -20,6 +20,10 @@ fun PaymentDialog(
     var expiryDate by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
 
+    var cardNumberError by remember { mutableStateOf("") }
+    var expiryDateError by remember { mutableStateOf("") }
+    var cvvError by remember { mutableStateOf("") }
+
     Dialog(onDismissRequest = { onDismiss() }) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -41,24 +45,57 @@ fun PaymentDialog(
 
                 OutlinedTextField(
                     value = cardNumber,
-                    onValueChange = { cardNumber = it },
+                    onValueChange = {
+                        cardNumber = it
+                        cardNumberError = validateCardNumber(it)
+                    },
                     label = { Text("Card Number") },
+                    isError = cardNumberError.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (cardNumberError.isNotEmpty()) {
+                    Text(
+                        text = cardNumberError,
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
                 OutlinedTextField(
                     value = expiryDate,
-                    onValueChange = { expiryDate = it },
+                    onValueChange = {
+                        expiryDate = it
+                        expiryDateError = validateExpiryDate(it)
+                    },
                     label = { Text("Expiry Date (MM/YY)") },
+                    isError = expiryDateError.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (expiryDateError.isNotEmpty()) {
+                    Text(
+                        text = expiryDateError,
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
                 OutlinedTextField(
                     value = cvv,
-                    onValueChange = { cvv = it },
+                    onValueChange = {
+                        cvv = it
+                        cvvError = validateCVV(it)
+                    },
                     label = { Text("CVV") },
+                    isError = cvvError.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (cvvError.isNotEmpty()) {
+                    Text(
+                        text = cvvError,
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -69,9 +106,17 @@ fun PaymentDialog(
                     }
                     Button(
                         onClick = {
-                            onConfirmPayment(cardNumber, expiryDate, cvv)
+                            if (cardNumberError.isEmpty() &&
+                                expiryDateError.isEmpty() &&
+                                cvvError.isEmpty()
+                            ) {
+                                onConfirmPayment(cardNumber, expiryDate, cvv)
+                            }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = PurpleButton)
+                        colors = ButtonDefaults.buttonColors(containerColor = PurpleButton),
+                        enabled = cardNumberError.isEmpty() &&
+                                expiryDateError.isEmpty() &&
+                                cvvError.isEmpty()
                     ) {
                         Text("Pay Now", color = Color.White)
                     }
@@ -80,3 +125,39 @@ fun PaymentDialog(
         }
     }
 }
+
+fun validateCardNumber(cardNumber: String): String {
+    return when {
+        cardNumber.isBlank() -> "Card number cannot be empty"
+        cardNumber.length != 16 -> "Card number must be 16 digits"
+        !cardNumber.all { it.isDigit() } -> "Card number must contain only digits"
+        else -> ""
+    }
+}
+
+fun validateExpiryDate(expiryDate: String): String {
+    val regex = Regex("""^(0[1-9]|1[0-2])\/\d{2}$""")
+    return when {
+        expiryDate.isBlank() -> "Expiry date cannot be empty"
+        !regex.matches(expiryDate) -> "Expiry date must be in MM/YY format"
+        else -> {
+            val (month, year) = expiryDate.split("/").map { it.toInt() }
+            val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) % 100
+            val currentMonth = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1
+            when {
+                year < currentYear || (year == currentYear && month < currentMonth) -> "Expiry date cannot be in the past"
+                else -> ""
+            }
+        }
+    }
+}
+
+fun validateCVV(cvv: String): String {
+    return when {
+        cvv.isBlank() -> "CVV cannot be empty"
+        cvv.length != 3 -> "CVV must be 3 digits"
+        !cvv.all { it.isDigit() } -> "CVV must contain only digits"
+        else -> ""
+    }
+}
+
