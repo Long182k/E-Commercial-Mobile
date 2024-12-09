@@ -41,10 +41,11 @@ import io.ktor.util.InternalAPI
 import io.ktor.utils.io.errors.IOException
 
 class NetworkServiceImplement(val client: HttpClient) : NetworkService {
-    private val baseUrl = "https://ecommerce-ktor-4641e7ff1b63.herokuapp.com/v2"
+    private val baseUrl = "http://192.168.1.5:8081"
+
     override suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel> {
-        val url =
-            if (category != null) "$baseUrl/products/category/$category" else "$baseUrl/products"
+        val url ="$baseUrl/products"
+//            if (category != null) "$baseUrl/products/category/$category" else "$baseUrl/products"
         return makeWebRequest(url = url,
             method = HttpMethod.Get,
             mapper = { dataModels: ProductListResponse ->
@@ -109,7 +110,7 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
     }
 
     override suspend fun getCartSummary(userId: Long): ResultWrapper<CartSummary> {
-        val url = "$baseUrl/checkout/$userId/summary"
+        val url = "$baseUrl/orders/checkout/$userId"
         return makeWebRequest(url = url,
             method = HttpMethod.Get,
             mapper = { cartSummary: CartSummaryResponse ->
@@ -141,7 +142,7 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
     }
 
     override suspend fun login(email: String, password: String): ResultWrapper<UserDomainModel> {
-        val url = "$baseUrl/login"
+        val url = "$baseUrl/auth/login"
         return makeWebRequest(
             url = url,
             method = HttpMethod.Post,
@@ -159,7 +160,7 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
         password: String,
         name: String
     ): ResultWrapper<UserDomainModel> {
-        val url = "$baseUrl/signup"
+        val url = "$baseUrl/auth/register"
         return makeWebRequest(
             url = url,
             method = HttpMethod.Post,
