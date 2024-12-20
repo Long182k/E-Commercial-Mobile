@@ -23,7 +23,11 @@ class OrdersViewModel(
 
     init {
         _user.value = EcommercialSession.getUser()
-        getOrderList()
+        getOrderList() // Initial fetch
+    }
+
+    fun fetchOrders() {
+        getOrderList() // Expose the internal method for refetching
     }
 
     fun filterOrders(list: List<OrdersData>, filter: String): List<OrdersData> {
@@ -38,7 +42,6 @@ class OrdersViewModel(
             when (result) {
                 is com.example.domain.network.ResultWrapper.Success -> {
                     val data = result.value
-                    // Map orders to include address data
                     val ordersWithAddress = data.data.map { order ->
                         OrdersData(
                             id = order.id,
