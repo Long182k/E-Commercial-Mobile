@@ -58,39 +58,10 @@ import org.koin.androidx.compose.koinViewModel
 fun CartScreen(navController: NavController, viewModel: CartViewModel = koinViewModel()) {
 
     val uiState = viewModel.uiState.collectAsState()
-    val cartItems = remember {
-        mutableStateOf(emptyList<CartItemModel>())
-    }
-    val loading = remember {
-        mutableStateOf(false)
-    }
-    val errorMsg = remember {
-        mutableStateOf<String?>(null)
-    }
-    LaunchedEffect(uiState.value) {
-        when (uiState.value) {
-            is CartViewModel.CartEvent.Loading -> {
-                loading.value = true
-                errorMsg.value = null
-            }
+    val cartItems = (uiState.value as? CartViewModel.CartEvent.Success)?.message ?: emptyList()
+    val loading = (uiState.value is CartViewModel.CartEvent.Loading)
+    val errorMsg = (uiState.value as? CartViewModel.CartEvent.Error)?.message
 
-            is CartViewModel.CartEvent.Error -> {
-                // Show error
-                loading.value = false
-                errorMsg.value = (uiState.value as CartViewModel.CartEvent.Error).message
-            }
-
-            is CartViewModel.CartEvent.Success -> {
-                loading.value = false
-                val data = (uiState.value as CartViewModel.CartEvent.Success).message
-                if (data.isEmpty()) {
-                    errorMsg.value = "No items in cart"
-                } else {
-                    cartItems.value = data
-                }
-            }
-        }
-    }
     Column(modifier = Modifier.fillMaxSize()) {
         val pullToRefreshState = rememberPullToRefreshState()
         if (pullToRefreshState.isRefreshing) {
@@ -110,7 +81,7 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                     .clip(CircleShape)
                     .background(Color.LightGray.copy(alpha = 0.4f))
                     .clickable {
-                        navController.navigateUp() // or popBackStack(HomeScreen, false)
+                        navController.navigateUp() // Navigate back
                     }
                     .align(Alignment.TopStart)
             ) {
@@ -122,16 +93,17 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                         .fillMaxSize()
                 )
             }
+
             PullToRefreshContainer(
                 state = pullToRefreshState, modifier = Modifier.align(Alignment.TopCenter)
             )
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .nestedScroll(pullToRefreshState.nestedScrollConnection)
                     .padding(16.dp)
             ) {
-//                Text(text = "Cart", style = MaterialTheme.typography.titleSmall)
                 Text(
                     text = "Cart",
                     modifier = Modifier
@@ -142,20 +114,40 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                 )
 
                 Spacer(modifier = Modifier.size(8.dp))
-                val shouldShowList = !loading.value && errorMsg.value == null
+
                 AnimatedVisibility(
-                    visible = shouldShowList, enter = fadeIn(), modifier = Modifier.weight(1f)
+                    visible = !loading && errorMsg == null,
+                    enter = fadeIn(),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    LazyColumn {
-                        items(items = cartItems.value, key = { item -> item.id }) { item ->
-                            CartItem(item = item,
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            items = cartItems,
+                            key = { item -> item.id }
+                        ) { item ->
+                            CartItem(
+                                item = item,
                                 onIncrement = { viewModel.incrementQuantity(it) },
                                 onDecrement = { viewModel.decrementQuantity(it) },
-                                onRemove = { viewModel.removeItem(it) })
+                                onRemove = { viewModel.removeItem(it) }
+                            )
                         }
                     }
                 }
-                if (shouldShowList) {
+
+                if (errorMsg != null) {
+                    Text(
+                        text = errorMsg,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Red
+                    )
+                }
+
+                if (cartItems.isNotEmpty()) {
                     Button(
                         onClick = { navController.navigate(CartSummaryScreen) },
                         modifier = Modifier.fillMaxWidth(),
@@ -169,23 +161,15 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = koinView
                     }
                 }
             }
-            if (loading.value) {
-                // Show loading
+
+            if (loading) {
                 Column(modifier = Modifier.align(Alignment.Center)) {
                     CircularProgressIndicator(modifier = Modifier.size(48.dp))
                     Text(text = "Loading...")
                 }
             }
-            if (errorMsg.value != null) {
-                Text(
-                    text = errorMsg.value ?: "Something went wrong!",
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-
         }
     }
-
 }
 
 @Composable
@@ -228,30 +212,33 @@ fun CartItem(
         }
         Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.End) {
 
+            // Remove Button
             IconButton(onClick = { onRemove(item) }) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_delete),
-                    contentDescription = null
+                    contentDescription = "Remove Item"
                 )
             }
 
+            // Quantity Increment and Decrement
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onIncrement(item) }) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = null
+                        contentDescription = "Increase Quantity"
                     )
                 }
                 Text(text = item.quantity.toString())
                 IconButton(onClick = { onDecrement(item) }) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_subtract),
-                        contentDescription = null
+                        contentDescription = "Decrease Quantity"
                     )
                 }
-
             }
         }
     }
-
 }
+
+
+
