@@ -31,12 +31,10 @@ fun NotificationScreen(
     orders: List<OrdersData>,
     onRefetchNotifications: () -> Unit
 ) {
-    // Trigger refetch whenever this screen is navigated to
     LaunchedEffect(Unit) {
         onRefetchNotifications()
     }
 
-    // Maintain a list of visible notifications by order ID
     val visibleNotifications = remember {
         mutableStateMapOf<Int, Boolean>().apply {
             orders.forEach { order -> this[order.id] = true }
@@ -52,13 +50,13 @@ fun NotificationScreen(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Back Button Implementation
+                // Back Button
                 Box(
                     modifier = Modifier
                         .padding(10.dp)
                         .size(35.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray.copy(alpha = 0.4f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                         .clickable {
                             navController.navigateUp()
                         }
@@ -85,7 +83,7 @@ fun NotificationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Notification list with animation
+                // Notification List
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -113,12 +111,14 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) // Subtle background
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFE3F2FD))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -127,6 +127,7 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
                 text = "Order #${order.id} pay success",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary, // Primary color for text
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
@@ -134,7 +135,7 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_subtract),
                     contentDescription = "Dismiss Notification",
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.primary // Primary color for icon
                 )
             }
         }

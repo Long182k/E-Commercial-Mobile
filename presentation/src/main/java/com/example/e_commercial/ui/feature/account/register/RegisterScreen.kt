@@ -1,163 +1,201 @@
 package com.example.e_commercial.ui.feature.account.register
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_commercial.R
 import com.example.e_commercial.navigation.HomeScreen
-import com.example.e_commercial.navigation.RegisterScreen
-import com.example.e_commercial.ui.feature.account.login.LoginState
-import com.example.e_commercial.ui.feature.account.login.LoginViewModel
 import org.koin.androidx.compose.koinViewModel
-import com.example.e_commercial.ui.feature.account.login.PurpleButton
-
-
 
 @Composable
 fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = koinViewModel()) {
+    val email = viewModel.email.collectAsState()
+    val password = viewModel.password.collectAsState()
+    val name = viewModel.name.collectAsState()
     val registerState = viewModel.registerState.collectAsState()
-    Column(
+
+    Box(
         modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background) // White background by default
+            .padding(16.dp)
     ) {
-        when (val state = registerState.value) {
-            is RegisterState.Success -> {
-                LaunchedEffect(registerState.value) {
-                    navController.navigate(HomeScreen) {
-                        popUpTo(HomeScreen) {
-                            inclusive = true
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(id = R.string.register),
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 32.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            when (val state = registerState.value) {
+                is RegisterState.Success -> {
+                    LaunchedEffect(state) {
+                        navController.navigate(HomeScreen) {
+                            popUpTo(HomeScreen) { inclusive = true }
                         }
                     }
                 }
+                is RegisterState.Error -> {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+                is RegisterState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                else -> Unit
             }
 
-            is RegisterState.Error -> {
-                Text(
-                    text = state.message,
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(8.dp)
-                )
-                RegisterContent(
-                    onRegisterClicked = { email, password, name ->
-                        viewModel.register(email = email, password = password, name = name)
-                    },
-                    onSignInClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            is RegisterState.Loading -> {
-                CircularProgressIndicator()
-                Text(text = stringResource(id = R.string.loading))
-            }
-
-            else -> {
-                RegisterContent(
-                    onRegisterClicked = { email, password, name ->
-                        viewModel.register(email = email, password = password, name = name)
-                    },
-                    onSignInClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
+            RegisterContent(
+                email = email.value,
+                password = password.value,
+                name = name.value,
+                onEmailChange = viewModel::updateEmail,
+                onPasswordChange = viewModel::updatePassword,
+                onNameChange = viewModel::updateName,
+                onRegisterClicked = { viewModel.register() },
+                onSignInClick = { navController.popBackStack() }
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterContent(
-    onRegisterClicked: (String, String, String) -> Unit,
+    email: String,
+    password: String,
+    name: String,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onNameChange: (String) -> Unit,
+    onRegisterClicked: () -> Unit,
     onSignInClick: () -> Unit
 ) {
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-    val name = remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = stringResource(id = R.string.register),
-            style = MaterialTheme.typography.titleLarge
-        )
-
+        // Name Input Field with Icon
         OutlinedTextField(
-            value = name.value,
-            onValueChange = { name.value = it },
-            modifier = Modifier
-                .padding(vertical = 4.dp)
-                .fillMaxWidth(),
-            label = { Text(text = stringResource(id = R.string.name)) }
-        )
-
-        OutlinedTextField(
-            value = email.value,
-            onValueChange = { email.value = it },
-            modifier = Modifier
-                .padding(vertical = 4.dp)
-                .fillMaxWidth(),
-            label = { Text(text = stringResource(id = R.string.email)) }
-        )
-
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth(),
-            label = { Text(text = stringResource(id = R.string.password)) },
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Button(
-            onClick = { onRegisterClicked(email.value, password.value, name.value) },
+            value = name,
+            onValueChange = onNameChange,
             modifier = Modifier.fillMaxWidth(),
-            enabled = email.value.isNotEmpty() && password.value.isNotEmpty() && name.value.isNotEmpty(),
+            label = { Text(text = stringResource(id = R.string.name)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = stringResource(id = R.string.name)
+                )
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge
+        )
+
+        // Email Input Field with Icon
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(text = stringResource(id = R.string.email)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Email,
+                    contentDescription = stringResource(id = R.string.email)
+                )
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge
+        )
+
+        // Password Input Field with Icon
+        OutlinedTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(text = stringResource(id = R.string.password)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = stringResource(id = R.string.password)
+                )
+            },
+            visualTransformation = PasswordVisualTransformation(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge
+        )
+
+        // Register Button with Icon
+        Button(
+            onClick = onRegisterClicked,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty(),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PurpleButton,
-                contentColor = Color.White,
-                disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
-            )
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
+            ),
+            shape = MaterialTheme.shapes.medium
         ) {
-            Text(text = stringResource(id = R.string.register))
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = stringResource(id = R.string.register),
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(
+                text = stringResource(id = R.string.register),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+            )
         }
 
+        // Navigation to Login Screen
         Text(
             text = stringResource(id = R.string.already_have_an_account),
-            modifier = Modifier
-                .padding(8.dp)
-                .clickable { onSignInClick() }
+            modifier = Modifier.clickable { onSignInClick() },
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }

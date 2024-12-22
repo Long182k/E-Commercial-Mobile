@@ -58,27 +58,48 @@ fun CartSummaryScreen(
 ) {
     val address = remember { mutableStateOf<UserAddress?>(null) }
     val showPaymentDialog = remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Back Button and Title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp)
-
+                .height(60.dp),
         ) {
+            // Back Button
+            Box(
+                modifier = Modifier
+                    .size(35.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray.copy(alpha = 0.4f))
+                    .clickable {
+                        navController.navigateUp() // Navigate back
+                    }
+                    .align(Alignment.CenterStart)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_back), // Replace with your back icon resource
+                    contentDescription = "Back",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxSize()
+                )
+            }
+            // Title
             Text(
                 text = "Cart Summary",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(
-                    Alignment.Center
-                ),
-                fontWeight = FontWeight.Bold
-
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Center) // Center the text
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         val uiState = viewModel.uiState.collectAsState()
 
         LaunchedEffect(navController) {
@@ -139,46 +160,50 @@ fun CartSummaryScreen(
                             text = "Order Placed: ${event.orderId}",
                             style = MaterialTheme.typography.titleMedium,
                         )
-                        Button(onClick = {
-                            navController.popBackStack(
-                                HomeScreen,
-                                inclusive = false,
-                            )
-                        },
+                        Button(
+                            onClick = {
+                                navController.popBackStack(
+                                    HomeScreen,
+                                    inclusive = false,
+                                )
+                            },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PurpleButton,
-                                contentColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
-
                         ) {
                             Text(
                                 text = "Continue Shopping",
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
+
                     }
                 }
             }
         }
-
         if (uiState.value !is CartSummaryEvent.PlaceOrder) {
             Button(
                 onClick = {
                     if (address.value != null) {
-                        showPaymentDialog.value = true // Access the mutable state directly
+                        showPaymentDialog.value = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PurpleButton,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
-                    disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                 ),
                 enabled = address.value != null
             ) {
-                Text(text = "Proceed to Payment", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Proceed to Payment",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
+
 
         // Show Payment Dialog
         if (showPaymentDialog.value) {
@@ -192,6 +217,8 @@ fun CartSummaryScreen(
         }
     }
 }
+
+
 @Composable
 fun CartSummaryScreenContent(cartSummary: CartSummary) {
     LazyColumn(
