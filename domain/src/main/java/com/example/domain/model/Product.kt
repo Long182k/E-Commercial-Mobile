@@ -6,8 +6,10 @@ data class Product(
     val price: Double,
     val categoryId: Int,
     val description: String,
-    val image: String
+    val image: String,
+    val sellNumber: Int
 ) {
     val priceString: String
         get() = "$$price"
 }
+

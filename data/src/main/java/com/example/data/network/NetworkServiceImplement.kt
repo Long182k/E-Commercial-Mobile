@@ -57,6 +57,15 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
             })
     }
 
+    override suspend fun getBestSellers(): ResultWrapper<ProductListModel> {
+        val url = "$baseUrl/products/best-sellers"
+        return makeWebRequest(url = url,
+            method = HttpMethod.Get,
+            mapper = { dataModels: ProductListResponse ->
+                dataModels.toProductList()
+            })
+    }
+
     override suspend fun getProductsByCategory(categoryId: Int): ResultWrapper<ProductListModel> {
         val url = "$baseUrl/products/category/$categoryId"
         return makeWebRequest(url = url,
@@ -152,8 +161,8 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
                 method = HttpMethod.Get
                 contentType(ContentType.Application.Json)
             }
-            val productResponse = response.body<ProductResponse>() // Use ProductResponse
-            productResponse.data.image ?: "https://via.placeholder.com/150" // Return the image or fallback
+            val productResponse = response.body<ProductResponse>() 
+            productResponse.data.image ?: "https://via.placeholder.com/150"
         } catch (e: Exception) {
             Log.e("getProductImage", "Failed to fetch image for Product ID: $productId", e)
             "https://via.placeholder.com/150"

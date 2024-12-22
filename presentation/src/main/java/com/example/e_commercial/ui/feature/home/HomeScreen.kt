@@ -170,6 +170,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
 
+                               // Best Sellers Section
+                               ProductsSection(
+                                title = "Best Sellers",
+                                products = filteredPopular.value,
+                                onClick = {
+                                    navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
+                                },
+                                viewAllState = viewAllPopularState
+                            )
+
                             // Featured Products Section
                             ProductsSection(
                                 title = "Featured Products",
@@ -182,15 +192,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Popular Products Section
-                            ProductsSection(
-                                title = "Popular Products",
-                                products = filteredPopular.value,
-                                onClick = {
-                                    navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
-                                },
-                                viewAllState = viewAllPopularState
-                            )
+                         
                         }
                     }
                 }
@@ -272,10 +274,24 @@ fun ProductsSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                // Only show fire icon for Best Sellers section
+                if (title == "Best Sellers") {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color(0xFFFF9800)
+                    )
+                }
+            }
             TextButton(
                 onClick = { viewAllState.value = !viewAllState.value }
             ) {
@@ -548,6 +564,22 @@ fun ProductItem(product: Product, onClick: (Product) -> Unit) {
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_cart),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.Gray
+                        )
+                        Text(
+                            text = "${product.sellNumber ?: 0}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -620,6 +652,57 @@ fun HomeContent(
             }
         }
 
+  // Best Sellers Section
+  item {
+    if (popularProducts.isNotEmpty()) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Best Sellers",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(
+                    onClick = { viewAllPopularState.value = !viewAllPopularState.value }
+                ) {
+                    Text(if (viewAllPopularState.value) "Show Less" else "View All")
+                }
+            }
+
+            if (viewAllPopularState.value) {
+                val popularChunked = popularProducts.chunked(2)
+                popularChunked.forEach { productPair ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        productPair.forEach { product ->
+                            ProductItem(
+                                product = product,
+                                onClick = onClick
+                            )
+                        }
+                        if (productPair.size == 1) {
+                            Spacer(modifier = Modifier.width(160.dp))
+                        }
+                    }
+                }
+            } else {
+                LazyRow {
+                    items(popularProducts, key = { it.id }) { product ->
+                        ProductItem(product = product, onClick = onClick)
+                    }
+                }
+            }
+        }
+    }
+}
         // Featured Products Section
         item {
             if (featured.isNotEmpty()) {
@@ -673,57 +756,7 @@ fun HomeContent(
             }
         }
 
-        // Popular Products Section
-        item {
-            if (popularProducts.isNotEmpty()) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Popular Products",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        TextButton(
-                            onClick = { viewAllPopularState.value = !viewAllPopularState.value }
-                        ) {
-                            Text(if (viewAllPopularState.value) "Show Less" else "View All")
-                        }
-                    }
-
-                    if (viewAllPopularState.value) {
-                        val popularChunked = popularProducts.chunked(2)
-                        popularChunked.forEach { productPair ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                productPair.forEach { product ->
-                                    ProductItem(
-                                        product = product,
-                                        onClick = onClick
-                                    )
-                                }
-                                if (productPair.size == 1) {
-                                    Spacer(modifier = Modifier.width(160.dp))
-                                }
-                            }
-                        }
-                    } else {
-                        LazyRow {
-                            items(popularProducts, key = { it.id }) { product ->
-                                ProductItem(product = product, onClick = onClick)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+      
     }
 }
 
