@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -151,13 +152,14 @@ fun UserAddressScreen(navController: NavController, userAddress: UserAddress?) {
                     postalCodeError.value.isEmpty() &&
                     countryError.value.isEmpty(),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PurpleButton,
+                containerColor = MaterialTheme.colorScheme.primary, // Updated to match the "Checkout" button
                 contentColor = Color.White,
-                disabledContainerColor = PurpleButton.copy(alpha = 0.6f)
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
             )
         ) {
             Text(text = "Save")
         }
+
     }
 }
 

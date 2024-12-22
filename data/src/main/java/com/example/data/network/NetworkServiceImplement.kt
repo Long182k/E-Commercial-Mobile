@@ -41,7 +41,7 @@ import io.ktor.util.InternalAPI
 import io.ktor.utils.io.errors.IOException
 
 class NetworkServiceImplement(val client: HttpClient) : NetworkService {
-    private val baseUrl = "http://192.168.2.13:8081"
+    private val baseUrl = "http://192.168.1.20:8081"
 
     override suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel> {
         val url ="$baseUrl/products"

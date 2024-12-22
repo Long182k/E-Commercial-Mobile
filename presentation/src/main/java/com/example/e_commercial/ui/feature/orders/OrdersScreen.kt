@@ -93,18 +93,23 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(24.dp))
-                        .background(if (selectedTab.value == index) PurpleButton else Color.Transparent)
+                        .background(
+                            if (selectedTab.value == index) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        )
                         .clickable { selectedTab.value = index }
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
                         text = title,
-                        color = if (selectedTab.value == index) Color.White else Color.Black,
+                        color = if (selectedTab.value == index) Color.White
+                        else MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
+
 
         // Handle UI State
         when (uiState.value) {
@@ -245,7 +250,11 @@ fun OrderItem(order: OrdersData, user: UserDomainModel) {
             ) {
                 OutlinedButton(
                     onClick = { showDetails = true },
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Text("Details")
                 }

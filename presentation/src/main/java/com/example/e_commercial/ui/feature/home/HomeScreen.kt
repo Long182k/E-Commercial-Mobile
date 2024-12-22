@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +62,7 @@ import com.example.e_commercial.navigation.ProductDetails
 import org.koin.androidx.compose.koinViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.text.style.TextAlign
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 
 
@@ -76,70 +79,210 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
     val filteredFeatured = remember { mutableStateOf<List<Product>>(emptyList()) }
     val filteredPopular = remember { mutableStateOf<List<Product>>(emptyList()) }
 
+    val viewAllFeaturedState = remember { mutableStateOf(false) }
+    val viewAllPopularState = remember { mutableStateOf(false) }
+
     LaunchedEffect(searchQuery.value, feature.value, popular.value) {
         val query = searchQuery.value
-        filteredFeatured.value = if (query.isBlank()) {
-            feature.value
-        } else {
-            feature.value.filter { it.title.contains(query, ignoreCase = true) }
-        }
-        filteredPopular.value = if (query.isBlank()) {
-            popular.value
-        } else {
-            popular.value.filter { it.title.contains(query, ignoreCase = true) }
-        }
+        filteredFeatured.value = if (query.isBlank()) feature.value
+        else feature.value.filter { it.title.contains(query, ignoreCase = true) }
+
+        filteredPopular.value = if (query.isBlank()) popular.value
+        else popular.value.filter { it.title.contains(query, ignoreCase = true) }
     }
 
-    Scaffold {
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background) // White background
+    ) { paddingValues ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
         ) {
-            when (uiState.value) {
-                is HomeScreenUIEvents.Loading -> {
-                    loading.value = true
-                    error.value = null
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    // Profile Header
+                    ProfileHeader(
+                        onCartClicked = {
+                            navController.navigate(CartScreen) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        navController = navController
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Search Bar
+                    SearchBar(
+                        value = searchQuery.value,
+                        onTextChanged = { searchQuery.value = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                is HomeScreenUIEvents.Success -> {
-                    val data = (uiState.value as HomeScreenUIEvents.Success)
-                    feature.value = data.featured
-                    popular.value = data.popularProducts
-                    categories.value = data.categories
-                    loading.value = false
-                    error.value = null
-                }
+                item {
+                    when (val state = uiState.value) {
+                        is HomeScreenUIEvents.Loading -> {
+                            LoadingState()
+                        }
+                        is HomeScreenUIEvents.Error -> {
+                            ErrorState(errorMessage = state.message)
+                        }
+                        is HomeScreenUIEvents.Success -> {
+                            feature.value = state.featured
+                            popular.value = state.popularProducts
+                            categories.value = state.categories
 
-                is HomeScreenUIEvents.Error -> {
-                    val errorMsg = (uiState.value as HomeScreenUIEvents.Error).message
-                    loading.value = false
-                    error.value = errorMsg
-                }
-            }
-            HomeContent(
-                navController = navController,
-                featured = filteredFeatured.value,
-                popularProducts = filteredPopular.value,
-                categories = categories.value,
-                isLoading = loading.value,
-                errorMsg = error.value,
-                searchQuery = searchQuery.value,
-                onSearchQueryChange = { searchQuery.value = it },
-                onClick = {
-                    navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
-                },
-                onCartClicked = {
-                    navController.navigate(CartScreen) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            // Categories Section
+                            if (categories.value.isNotEmpty()) {
+                                CategoriesSection(categories = categories.value)
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+
+                            // Featured Products Section
+                            ProductsSection(
+                                title = "Featured Products",
+                                products = filteredFeatured.value,
+                                onClick = {
+                                    navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
+                                },
+                                viewAllState = viewAllFeaturedState
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Popular Products Section
+                            ProductsSection(
+                                title = "Popular Products",
+                                products = filteredPopular.value,
+                                onClick = {
+                                    navController.navigate(ProductDetails(UIProductModel.fromProduct(it)))
+                                },
+                                viewAllState = viewAllPopularState
+                            )
+                        }
                     }
                 }
-            )
+            }
         }
     }
 }
+
+@Composable
+fun LoadingState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Loading...",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+@Composable
+fun ErrorState(errorMessage: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+@Composable
+fun CategoriesSection(categories: List<String>) {
+    LazyRow(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            CategoryChip(category = category)
+        }
+    }
+}
+@Composable
+fun ProductsSection(
+    title: String,
+    products: List<Product>,
+    onClick: (Product) -> Unit,
+    viewAllState: MutableState<Boolean>
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+            TextButton(
+                onClick = { viewAllState.value = !viewAllState.value }
+            ) {
+                Text(
+                    text = if (viewAllState.value) "Show Less" else "View All",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+        }
+
+        if (viewAllState.value) {
+            val chunkedProducts = products.chunked(2)
+            chunkedProducts.forEach { productPair ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    productPair.forEach { product ->
+                        ProductItem(product = product, onClick = onClick)
+                    }
+                    if (productPair.size == 1) {
+                        Spacer(modifier = Modifier.width(160.dp))
+                    }
+                }
+            }
+        } else {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                items(products) { product ->
+                    ProductItem(product = product, onClick = onClick)
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ProfileHeader(

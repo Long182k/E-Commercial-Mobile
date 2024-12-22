@@ -56,7 +56,7 @@ fun PaymentDialog(
                 if (cardNumberError.isNotEmpty()) {
                     Text(
                         text = cardNumberError,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error, // Error color from the theme
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -74,7 +74,7 @@ fun PaymentDialog(
                 if (expiryDateError.isNotEmpty()) {
                     Text(
                         text = expiryDateError,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error, // Error color from the theme
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -92,7 +92,7 @@ fun PaymentDialog(
                 if (cvvError.isNotEmpty()) {
                     Text(
                         text = cvvError,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error, // Error color from the theme
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -101,7 +101,12 @@ fun PaymentDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextButton(onClick = { onDismiss() }) {
+                    TextButton(
+                        onClick = { onDismiss() },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary // Primary color for the text button
+                        )
+                    ) {
                         Text("Cancel")
                     }
                     Button(
@@ -113,18 +118,22 @@ fun PaymentDialog(
                                 onConfirmPayment(cardNumber, expiryDate, cvv)
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = PurpleButton),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary, // Primary color for the button
+                            contentColor = MaterialTheme.colorScheme.onPrimary // Text color on primary background
+                        ),
                         enabled = cardNumberError.isEmpty() &&
                                 expiryDateError.isEmpty() &&
                                 cvvError.isEmpty()
                     ) {
-                        Text("Pay Now", color = Color.White)
+                        Text("Pay Now")
                     }
                 }
             }
         }
     }
 }
+
 
 fun validateCardNumber(cardNumber: String): String {
     return when {
