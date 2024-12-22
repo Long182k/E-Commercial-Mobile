@@ -11,6 +11,8 @@ data class DataProductModel(
     val image: String? = null,
     val price: Double? = null,
     val title: String? = null,
+    val sellNumber: Int? = null
+
 ) {
     fun toProduct() = com.example.domain.model.Product(
         id = id ?: -1,
@@ -18,6 +20,7 @@ data class DataProductModel(
         price = price ?: 0.0,
         categoryId = categoryId ?: 0,
         description = description ?: "No description",
-        image = image ?: "https://via.placeholder.com/150"
+        image = image ?: "https://via.placeholder.com/150",
+        sellNumber = sellNumber ?: 0
     )
 }

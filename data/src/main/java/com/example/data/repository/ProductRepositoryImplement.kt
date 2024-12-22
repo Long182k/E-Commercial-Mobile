@@ -9,4 +9,12 @@ class ProductRepositoryImplement(private val networkService: NetworkService): Pr
     override suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel> {
         return networkService.getProducts(category)
     }
+
+    override suspend fun getProductsByCategory(categoryId: Int): ResultWrapper<ProductListModel> {
+        return networkService.getProductsByCategory(categoryId)
+    }
+
+    override suspend fun getBestSellers(): ResultWrapper<ProductListModel> {
+        return networkService.getBestSellers()
+    }
 }

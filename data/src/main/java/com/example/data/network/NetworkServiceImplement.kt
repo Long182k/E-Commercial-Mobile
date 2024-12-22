@@ -44,11 +44,30 @@ import io.ktor.util.InternalAPI
 import io.ktor.utils.io.errors.IOException
 
 class NetworkServiceImplement(val client: HttpClient) : NetworkService {
-    private val baseUrl = "http://192.168.1.20:8081"
+//    private val baseUrl = "http://192.168.1.20:8081"
+    private val baseUrl = "http://192.168.2.205:8081"
 
     override suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel> {
         val url ="$baseUrl/products"
 //            if (category != null) "$baseUrl/products/category/$category" else "$baseUrl/products"
+        return makeWebRequest(url = url,
+            method = HttpMethod.Get,
+            mapper = { dataModels: ProductListResponse ->
+                dataModels.toProductList()
+            })
+    }
+
+    override suspend fun getBestSellers(): ResultWrapper<ProductListModel> {
+        val url = "$baseUrl/products/best-sellers"
+        return makeWebRequest(url = url,
+            method = HttpMethod.Get,
+            mapper = { dataModels: ProductListResponse ->
+                dataModels.toProductList()
+            })
+    }
+
+    override suspend fun getProductsByCategory(categoryId: Int): ResultWrapper<ProductListModel> {
+        val url = "$baseUrl/products/category/$categoryId"
         return makeWebRequest(url = url,
             method = HttpMethod.Get,
             mapper = { dataModels: ProductListResponse ->
@@ -142,8 +161,8 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
                 method = HttpMethod.Get
                 contentType(ContentType.Application.Json)
             }
-            val productResponse = response.body<ProductResponse>() // Use ProductResponse
-            productResponse.data.image ?: "https://via.placeholder.com/150" // Return the image or fallback
+            val productResponse = response.body<ProductResponse>() 
+            productResponse.data.image ?: "https://via.placeholder.com/150"
         } catch (e: Exception) {
             Log.e("getProductImage", "Failed to fetch image for Product ID: $productId", e)
             "https://via.placeholder.com/150"

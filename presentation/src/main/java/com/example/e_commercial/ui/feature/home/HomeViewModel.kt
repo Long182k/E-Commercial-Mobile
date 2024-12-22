@@ -2,6 +2,7 @@ package com.example.e_commercial.ui.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.model.Category
 import com.example.domain.model.Product
 import com.example.domain.network.ResultWrapper
 import com.example.domain.usecase.GetCategoriesUseCase
@@ -17,7 +18,8 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow<HomeScreenUIEvents>(HomeScreenUIEvents.Loading)
     val uiState = _uiState.asStateFlow()
-
+    private val _selectedCategoryId = MutableStateFlow<Int?>(null)
+    val selectedCategoryId = _selectedCategoryId.asStateFlow()
     init {
         getAllProducts()
     }
@@ -26,7 +28,8 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeScreenUIEvents.Loading
             val featured = getProducts(1)
-            val popularProducts = getProducts(2)
+
+            val popularProducts = getBestSellers()
             val categories = getCategory()
             if (featured.isEmpty() && popularProducts.isEmpty() && categories.isNotEmpty()) {
                 _uiState.value = HomeScreenUIEvents.Error("Failed to load products")
@@ -36,11 +39,11 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun getCategory(): List<String> {
+    private suspend fun getCategory(): List<Category> {
         categoryUseCase.execute().let { result ->
             when (result) {
                 is ResultWrapper.Success -> {
-                    return (result).value.categories.map { it.title }
+                    return (result).value.categories
                 }
 
                 is ResultWrapper.Failure -> {
@@ -63,6 +66,20 @@ class HomeViewModel(
             }
         }
     }
+
+    private suspend fun getBestSellers(): List<Product> {
+        getProductUseCase.executeBestSellers().let { result ->
+            when (result) {
+                is ResultWrapper.Success -> {
+                    return (result).value.products
+                }
+
+                is ResultWrapper.Failure -> {
+                    return emptyList()
+                }
+            }
+        }
+    }
 }
 
 sealed class HomeScreenUIEvents {
@@ -70,7 +87,7 @@ sealed class HomeScreenUIEvents {
     data class Success(
         val featured: List<Product>,
         val popularProducts: List<Product>,
-        val categories: List<String>
+        val categories: List<Category>
     ) :
         HomeScreenUIEvents()
 
