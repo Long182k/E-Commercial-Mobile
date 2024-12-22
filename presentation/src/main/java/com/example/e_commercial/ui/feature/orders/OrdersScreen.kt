@@ -48,6 +48,7 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.window.Dialog
 
 private val PurpleButton = Color(0xFF6B4EFF)
@@ -56,6 +57,13 @@ private val TextGray = Color(0xFF9E9E9E)
 
 @Composable
 fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
+    // Trigger fetchOrders whenever the screen is displayed
+    LaunchedEffect(Unit) {
+        viewModel.fetchOrders()
+    }
+
+    val uiState = viewModel.ordersEvent.collectAsState()
+
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
         Box(
@@ -71,14 +79,10 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
             )
         }
 
-        val uiState = viewModel.ordersEvent.collectAsState()
         // Tab Row
         val tabs = listOf("All", "Pending", "Delivered", "Cancelled")
-        val selectedTab = remember {
-            mutableStateOf(0)
-        }
+        val selectedTab = remember { mutableStateOf(0) }
 
-        // Custom Tab Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,6 +106,7 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
             }
         }
 
+        // Handle UI State
         when (uiState.value) {
             is OrdersEvent.Loading -> {
                 Column(
@@ -110,26 +115,17 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator()
-                    Text(text = "Loading")
+                    Text(text = "Loading...")
                 }
             }
 
             is OrdersEvent.Success -> {
                 val orders = (uiState.value as OrdersEvent.Success).data
-
                 when (selectedTab.value) {
-                    0 -> {
-                        OrderList(orders = orders)
-                    }
-                    1 -> {
-                        OrderList(orders = viewModel.filterOrders(orders, "Pending"))
-                    }
-                    2 -> {
-                        OrderList(orders = viewModel.filterOrders(orders, "Delivered"))
-                    }
-                    3 -> {
-                        OrderList(orders = viewModel.filterOrders(orders, "Cancelled"))
-                    }
+                    0 -> OrderList(orders = orders)
+                    1 -> OrderList(orders = viewModel.filterOrders(orders, "Pending"))
+                    2 -> OrderList(orders = viewModel.filterOrders(orders, "Delivered"))
+                    3 -> OrderList(orders = viewModel.filterOrders(orders, "Cancelled"))
                 }
             }
 
@@ -145,6 +141,7 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
         }
     }
 }
+
 
 @Composable
 fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewModel()) {

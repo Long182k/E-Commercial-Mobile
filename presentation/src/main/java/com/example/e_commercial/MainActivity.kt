@@ -144,23 +144,27 @@ class MainActivity : ComponentActivity() {
                             composable<NotificationScreen> {
                                 shouldShowBottomNav.value = false
 
-                                // Obtain OrdersViewModel instance using koinViewModel, viewModel, or however you are injecting it
-                                val viewModel: OrdersViewModel = koinViewModel() // or viewModel() if you're not using Koin/Hilt
+                                // Obtain OrdersViewModel instance using koinViewModel
+                                val viewModel: OrdersViewModel = koinViewModel()
 
                                 // Collect the orders event state directly
                                 val uiState = viewModel.ordersEvent.collectAsState()
 
+                                // Extract orders from the UI state
                                 val orders = if (uiState.value is OrdersEvent.Success) {
                                     (uiState.value as OrdersEvent.Success).data.sortedByDescending { it.orderDate }
                                 } else {
                                     emptyList() // Handle loading and error states as appropriate
                                 }
 
+                                // Pass the required parameters
                                 NotificationScreen(
                                     navController = navController,
-                                    orders = orders
+                                    orders = orders,
+                                    onRefetchNotifications = { viewModel.fetchOrders() } // Fetch notifications when navigated
                                 )
                             }
+
 
                         }
                     }
