@@ -566,7 +566,9 @@ fun HomeContent(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onClick: (Product) -> Unit,
-    onCartClicked: () -> Unit
+    onCartClicked: () -> Unit,
+    selectedCategoryId: Int? = null,
+    onCategorySelected: (Int?) -> Unit
 ) {
     val viewAllFeaturedState = remember { mutableStateOf(false) }
     val viewAllPopularState = remember { mutableStateOf(false) }
@@ -599,7 +601,19 @@ fun HomeContent(
             if (categories.isNotEmpty()) {
                 LazyRow {
                     items(categories, key = { it.id }) { category ->
-                        CategoryChip(categoryTitle = category.title,categoryId = category.id)
+                        CategoryChip(
+                            categoryTitle = category.title,
+                            categoryId = category.id,
+                            selected = category.id == selectedCategoryId,
+                            onClick = {
+                                // If clicking the already selected category, deselect it
+                                if (category.id == selectedCategoryId) {
+                                    onCategorySelected(null)
+                                } else {
+                                    onCategorySelected(category.id)
+                                }
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.size(16.dp))
