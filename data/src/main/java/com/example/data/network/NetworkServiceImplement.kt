@@ -1,5 +1,6 @@
 package com.example.data.network
 
+import android.util.Log
 import com.example.data.model.CategoryDataModel
 import com.example.data.model.DataProductModel
 import com.example.data.model.request.AddToCartRequest
@@ -12,6 +13,7 @@ import com.example.data.model.response.CategoriesListResponse
 import com.example.data.model.response.OrdersListResponse
 import com.example.data.model.response.PlaceOrderResponse
 import com.example.data.model.response.ProductListResponse
+import com.example.data.model.response.ProductResponse
 import com.example.data.model.response.UserAuthResponse
 import com.example.data.model.response.UserResponse
 import com.example.domain.model.AddressDomainModel
@@ -33,6 +35,7 @@ import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.Parameters
@@ -132,14 +135,47 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
             })
     }
 
+    private suspend fun getProductImage(productId: Int): String {
+        val productUrl = "$baseUrl/products/$productId"
+        return try {
+            val response = client.request(productUrl) {
+                method = HttpMethod.Get
+                contentType(ContentType.Application.Json)
+            }
+            val productResponse = response.body<ProductResponse>() // Use ProductResponse
+            productResponse.data.image ?: "https://via.placeholder.com/150" // Return the image or fallback
+        } catch (e: Exception) {
+            Log.e("getProductImage", "Failed to fetch image for Product ID: $productId", e)
+            "https://via.placeholder.com/150"
+        }
+    }
+
+
+
+
     override suspend fun getOrderList(userId: Long): ResultWrapper<OrdersListModel> {
         val url = "$baseUrl/orders/$userId"
-        return makeWebRequest(url = url,
-            method = HttpMethod.Get,
-            mapper = { ordersResponse: OrdersListResponse ->
-                ordersResponse.toDomainResponse()
-            })
+        return try {
+            val response = client.request(url) {
+                method = HttpMethod.Get
+                contentType(ContentType.Application.Json)
+            }
+
+            val responseBody = response.bodyAsText()
+            Log.d("BackEndHandler", "RESPONSE: $responseBody")
+
+            val ordersResponse = response.body<OrdersListResponse>()
+            ResultWrapper.Success(ordersResponse.toDomainResponse(::getProductImage))
+        } catch (e: Exception) {
+            Log.e("BackEndHandler", "Error fetching order list", e)
+            ResultWrapper.Failure(e)
+        }
     }
+
+
+
+
+
 
     override suspend fun login(email: String, password: String): ResultWrapper<UserDomainModel> {
         val url = "$baseUrl/auth/login"
@@ -179,12 +215,11 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
         body: Any? = null,
         headers: Map<String, String> = emptyMap(),
         parameters: Map<String, String> = emptyMap(),
-        noinline mapper: ((T) -> R)? = null
+        noinline mapper: suspend (T) -> R // Suspendable mapper
     ): ResultWrapper<R> {
         return try {
             val response = client.request(url) {
                 this.method = method
-                // Apply query parameters
                 url {
                     this.parameters.appendAll(Parameters.build {
                         parameters.forEach { (key, value) ->
@@ -192,19 +227,15 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
                         }
                     })
                 }
-                // Apply headers
                 headers.forEach { (key, value) ->
                     header(key, value)
                 }
-                // Set body for POST, PUT, etc.
                 if (body != null) {
                     setBody(body)
                 }
-
-                // Set content type
                 contentType(ContentType.Application.Json)
             }.body<T>()
-            val result: R = mapper?.invoke(response) ?: response as R
+            val result: R = mapper(response) // Execute mapper in the suspend context
             ResultWrapper.Success(result)
         } catch (e: ClientRequestException) {
             ResultWrapper.Failure(e)
@@ -216,5 +247,6 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
             ResultWrapper.Failure(e)
         }
     }
+
 
 }
