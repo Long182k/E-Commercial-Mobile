@@ -12,6 +12,7 @@ import com.example.domain.model.request.AddCartRequestModel
 
 interface NetworkService {
     suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel>
+    suspend fun getProductsByCategory(categoryId: Int): ResultWrapper<ProductListModel>
     suspend fun getCategories(): ResultWrapper<CategoriesListModel>
 
     suspend fun addProductToCart(

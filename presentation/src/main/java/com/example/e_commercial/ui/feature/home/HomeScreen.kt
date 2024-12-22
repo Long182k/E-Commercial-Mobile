@@ -63,6 +63,7 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
+import com.example.domain.model.Category
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 
 
@@ -73,22 +74,39 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
     val error = remember { mutableStateOf<String?>(null) }
     val feature = remember { mutableStateOf<List<Product>>(emptyList()) }
     val popular = remember { mutableStateOf<List<Product>>(emptyList()) }
-    val categories = remember { mutableStateOf<List<String>>(emptyList()) }
+    val categories = remember { mutableStateOf<List<Category>>(emptyList()) }
 
+    val selectedCategoryId = remember { mutableStateOf<Int?>(null) }
     val searchQuery = remember { mutableStateOf("") }
+
     val filteredFeatured = remember { mutableStateOf<List<Product>>(emptyList()) }
     val filteredPopular = remember { mutableStateOf<List<Product>>(emptyList()) }
 
     val viewAllFeaturedState = remember { mutableStateOf(false) }
     val viewAllPopularState = remember { mutableStateOf(false) }
 
-    LaunchedEffect(searchQuery.value, feature.value, popular.value) {
+    LaunchedEffect(searchQuery.value, selectedCategoryId.value, feature.value, popular.value) {
         val query = searchQuery.value
-        filteredFeatured.value = if (query.isBlank()) feature.value
-        else feature.value.filter { it.title.contains(query, ignoreCase = true) }
-
-        filteredPopular.value = if (query.isBlank()) popular.value
-        else popular.value.filter { it.title.contains(query, ignoreCase = true) }
+        
+        // First filter by search query
+        val searchFilteredFeatured = if (query.isBlank()) feature.value
+            else feature.value.filter { it.title.contains(query, ignoreCase = true) }
+        
+        val searchFilteredPopular = if (query.isBlank()) popular.value
+            else popular.value.filter { it.title.contains(query, ignoreCase = true) }
+        
+        // Then filter by category if one is selected
+        filteredFeatured.value = if (selectedCategoryId.value != null) {
+            searchFilteredFeatured.filter { it.categoryId == selectedCategoryId.value }
+        } else {
+            searchFilteredFeatured
+        }
+        
+        filteredPopular.value = if (selectedCategoryId.value != null) {
+            searchFilteredPopular.filter { it.categoryId == selectedCategoryId.value }
+        } else {
+            searchFilteredPopular
+        }
     }
 
     Scaffold(
@@ -142,7 +160,13 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
 
                             // Categories Section
                             if (categories.value.isNotEmpty()) {
-                                CategoriesSection(categories = categories.value)
+                                CategoriesSection(
+                                    categories = categories.value,
+                                    selectedCategoryId = selectedCategoryId.value,
+                                    onCategorySelected = { newCategoryId ->
+                                        selectedCategoryId.value = newCategoryId
+                                    }
+                                )
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
 
@@ -207,13 +231,25 @@ fun ErrorState(errorMessage: String) {
     }
 }
 @Composable
-fun CategoriesSection(categories: List<String>) {
+fun CategoriesSection(categories: List<Category>, selectedCategoryId: Int? = null, onCategorySelected: (Int?) -> Unit) {
     LazyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { category ->
-            CategoryChip(category = category)
+            CategoryChip(
+                categoryTitle = category.title,
+                categoryId = category.id,
+                selected = category.id == selectedCategoryId,
+                onClick = {
+                    // If clicking the already selected category, deselect it
+                    if (category.id == selectedCategoryId) {
+                        onCategorySelected(null)
+                    } else {
+                        onCategorySelected(category.id)
+                    }
+                }
+            )
         }
     }
 }
@@ -416,15 +452,22 @@ fun SearchBar(value: String, onTextChanged: (String) -> Unit) {
 }
 
 @Composable
-fun CategoryChip(category: String, selected: Boolean = false) {
+fun CategoryChip(
+    categoryTitle: String,
+    categoryId: Int,
+    selected: Boolean = false,
+    onClick: () -> Unit
+) {
     Surface(
-        modifier = Modifier.padding(end = 8.dp),
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         color = if (selected) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     ) {
         Text(
-            text = category.replaceFirstChar { it.uppercase() },
+            text = categoryTitle.replaceFirstChar { it.uppercase() },
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             color = if (selected) Color.White
             else MaterialTheme.colorScheme.primary,
@@ -517,7 +560,7 @@ fun HomeContent(
     navController: NavController,
     featured: List<Product>,
     popularProducts: List<Product>,
-    categories: List<String>,
+    categories: List<Category>,
     isLoading: Boolean = false,
     errorMsg: String? = null,
     searchQuery: String,
@@ -555,8 +598,8 @@ fun HomeContent(
             // Categories Section
             if (categories.isNotEmpty()) {
                 LazyRow {
-                    items(categories, key = { it }) { category ->
-                        CategoryChip(category = category)
+                    items(categories, key = { it.id }) { category ->
+                        CategoryChip(categoryTitle = category.title,categoryId = category.id)
                     }
                 }
                 Spacer(modifier = Modifier.size(16.dp))

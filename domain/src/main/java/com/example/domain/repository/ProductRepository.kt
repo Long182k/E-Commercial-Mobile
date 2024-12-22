@@ -6,4 +6,5 @@ import com.example.domain.network.ResultWrapper
 
 interface ProductRepository {
     suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel>
+    suspend fun getProductsByCategory(categoryId: Int): ResultWrapper<ProductListModel>
 }
