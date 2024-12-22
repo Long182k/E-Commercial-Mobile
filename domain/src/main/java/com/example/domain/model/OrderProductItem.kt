@@ -7,5 +7,6 @@ data class OrderProductItem(
     val productId: Int,
     val productName: String,
     val quantity: Int,
-    val userId: Int
+    val userId: Int,
+    val image: String
 )

@@ -11,17 +11,19 @@ data class OrderListData(
     val status: String,
     val totalAmount: Double,
     val userId: Int,
-    val address: AddressResponse,
+    val address: AddressResponse
 ) {
-    fun toDomainResponse(): OrdersData {
+    suspend fun toDomainResponse(
+        getProductImage: suspend (Int) -> String
+    ): OrdersData {
         return OrdersData(
             id = id,
-            items = items.map { it.toDomainResponse() },
+            items = items.map { it.toDomainResponse(getProductImage) }, // Each item fetches its image
             orderDate = orderDate,
             status = status,
             totalAmount = totalAmount,
             userId = userId,
-            address = address.toDomain(),
+            address = address.toDomain()
         )
     }
 }
