@@ -51,7 +51,6 @@ import com.example.data.model.response.CartItem
 import com.example.domain.model.CartItemModel
 import com.example.e_commercial.R
 import com.example.e_commercial.navigation.CartSummaryScreen
-import com.example.e_commercial.ui.feature.account.login.PurpleButton
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 

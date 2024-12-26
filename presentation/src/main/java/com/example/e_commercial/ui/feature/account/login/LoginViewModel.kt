@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val ecommercialSession: EcommercialSession
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
@@ -59,7 +60,7 @@ class LoginViewModel(
 
     private fun handleSuccess(userDomainModel: UserDomainModel?) {
         if (userDomainModel != null) {
-            EcommercialSession.storeUser(userDomainModel)
+            ecommercialSession.storeUser(userDomainModel)
             _loginState.value = LoginState.Success()
         } else {
             _loginState.value = LoginState.Error("Unexpected error: Missing user data.")

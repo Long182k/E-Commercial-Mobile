@@ -14,11 +14,13 @@ import kotlinx.coroutines.launch
 class CartViewModel(
     private val cartUseCase: GetCartUseCase,
     private val updateQuantityUseCase: UpdateQuantityUseCase,
-    private val deleteItem: DeleteProductUseCase
+    private val deleteItem: DeleteProductUseCase,
+    private val ecommercialSession: EcommercialSession
+
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<CartEvent>(CartEvent.Loading)
     val uiState = _uiState.asStateFlow()
-    private val userDomainModel = EcommercialSession.getUser()
+    private val userDomainModel = ecommercialSession.getUser()
 
     init {
         getCart()

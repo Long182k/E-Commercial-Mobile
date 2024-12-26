@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.model.CartSummary
 import com.example.domain.usecase.CartSummaryUseCase
 import com.example.domain.usecase.PlaceOrderUseCase
+import com.example.e_commercial.EcommercialSession
 import com.example.e_commercial.model.UserAddress
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,12 +13,13 @@ import kotlinx.coroutines.launch
 
 class CartSummaryViewModel(
     private val cartSummaryUseCase: CartSummaryUseCase,
-    private val placeOrderUseCase: PlaceOrderUseCase
+    private val placeOrderUseCase: PlaceOrderUseCase,
+    private val ecommercialSession: EcommercialSession
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CartSummaryEvent>(CartSummaryEvent.Loading)
     val uiState = _uiState.asStateFlow()
-    val userDomainModel = com.example.e_commercial.EcommercialSession.getUser()
+    val userDomainModel = ecommercialSession.getUser()
 
     init {
         getCartSummary(userDomainModel!!.id!!.toLong())

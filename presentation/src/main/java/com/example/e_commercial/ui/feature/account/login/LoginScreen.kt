@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,10 +39,10 @@ import com.example.e_commercial.R
 import com.example.e_commercial.navigation.HomeScreen
 import com.example.e_commercial.navigation.RegisterScreen
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.platform.testTag
+import androidx.compose.material3.Text
 
 
-// Define the purple color to match the design
-val PurpleButton = Color(0xFF6B4EFF)
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinViewModel()) {
@@ -54,7 +53,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinVi
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Set a solid white background
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Column(
@@ -82,10 +81,13 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinVi
                 is LoginState.Error -> {
                     Text(
                         text = state.message,
+                        modifier = Modifier
+                            .testTag("errorMsg")
+                            .padding(bottom = 16.dp),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
+
                 }
                 is LoginState.Loading -> {
                     CircularProgressIndicator(
@@ -129,7 +131,7 @@ fun LoginContent(
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("emailField"),
             label = { Text(text = stringResource(id = R.string.email)) },
             leadingIcon = {
                 Icon(
@@ -148,7 +150,7 @@ fun LoginContent(
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("passwordField"),
             label = { Text(text = stringResource(id = R.string.password)) },
             leadingIcon = {
                 Icon(
@@ -167,7 +169,7 @@ fun LoginContent(
         // Sign In Button with Icon
         Button(
             onClick = onSignInClicked,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("loginButton"),
             enabled = email.isNotEmpty() && password.isNotEmpty(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -176,7 +178,7 @@ fun LoginContent(
             shape = MaterialTheme.shapes.medium
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowForward, // Replace Login with ArrowForward
+                imageVector = Icons.Default.ArrowForward,
                 contentDescription = stringResource(id = R.string.login),
                 modifier = Modifier.padding(end = 8.dp)
             )

@@ -5,8 +5,8 @@ import com.example.domain.model.UserDomainModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-object EcommercialSession : KoinComponent {
-    private val context: Context by inject()
+
+class EcommercialSession(private val context: Context) {
 
     fun storeUser(user: UserDomainModel) {
         val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)

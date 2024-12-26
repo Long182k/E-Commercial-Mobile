@@ -5,18 +5,20 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.domain.model.UserDomainModel
 import com.example.e_commercial.EcommercialSession
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel : ViewModel(), KoinComponent {
+    private val session: EcommercialSession by inject()
+
     private val _user = MutableLiveData<UserDomainModel>()
     val user: LiveData<UserDomainModel> get() = _user
 
     init {
-        // Giả sử bạn có một hàm để lấy thông tin người dùng hiện tại
-        _user.value = getCurrentUser()
+        _user.value = session.getUser()
     }
 
-    private fun getCurrentUser(): UserDomainModel {
-        // Giả sử bạn có một hàm để lấy thông tin người dùng hiện tại từ session hoặc database
-        return EcommercialSession.getUser() ?: UserDomainModel(0, "", "", "")
+    fun logout() {
+        session.clearUser()
     }
 }

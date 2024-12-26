@@ -4,16 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.request.AddCartRequestModel
 import com.example.domain.usecase.AddToCartUseCase
+import com.example.e_commercial.EcommercialSession
 import com.example.e_commercial.model.UIProductModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ProductDetailsViewModel(val useCase: AddToCartUseCase) : ViewModel() {
+class ProductDetailsViewModel(val useCase: AddToCartUseCase, private val ecommercialSession: EcommercialSession
+) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductDetailsEvent>(ProductDetailsEvent.Nothing)
     val state = _state.asStateFlow()
-    val userDomainModel = com.example.e_commercial.EcommercialSession.getUser()
+    val userDomainModel = ecommercialSession.getUser()
     fun addProductToCart(product: UIProductModel) {
         viewModelScope.launch {
             _state.value = ProductDetailsEvent.Loading
