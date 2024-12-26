@@ -6,6 +6,7 @@ import com.example.e_commercial.ui.feature.cart.CartViewModel
 import com.example.e_commercial.ui.feature.home.HomeViewModel
 import com.example.e_commercial.ui.feature.orders.OrdersViewModel
 import com.example.e_commercial.ui.feature.product_details.ProductDetailsViewModel
+import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 import com.example.e_commercial.ui.feature.summary.CartSummaryViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -15,23 +16,23 @@ val viewModelModule = module {
         HomeViewModel(get(), get())
     }
     viewModel {
-        ProductDetailsViewModel(get())
+        ProductDetailsViewModel(get(),get())
     }
     viewModel {
-        CartViewModel(get(), get(), get())
+        CartViewModel(get(), get(), get(),get())
     }
     viewModel {
-        CartSummaryViewModel(get(), get())
+        CartSummaryViewModel(get(), get(),get())
     }
     viewModel {
-        OrdersViewModel(get())
-    }
-
-    viewModel {
-        LoginViewModel(get())
+        OrdersViewModel(get(),get())
     }
 
     viewModel {
-        RegisterViewModel(get())
+        LoginViewModel(get(),get())
+    }
+
+    viewModel {
+        RegisterViewModel(get(),get())
     }
 }

@@ -46,7 +46,6 @@ import coil.compose.AsyncImage
 import com.example.e_commercial.R
 import com.example.e_commercial.model.UIProductModel
 import com.example.e_commercial.navigation.HomeScreen
-import com.example.e_commercial.ui.feature.account.login.PurpleButton
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

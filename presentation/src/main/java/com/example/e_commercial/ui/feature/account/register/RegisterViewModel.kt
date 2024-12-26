@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class RegisterViewModel(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val ecommercialSession: EcommercialSession
 ) : ViewModel() {
 
     private val _registerState = MutableStateFlow<RegisterState>(RegisterState.Idle)
@@ -72,7 +73,7 @@ class RegisterViewModel(
 
     private fun handleSuccess(userDomainModel: UserDomainModel?) {
         if (userDomainModel != null) {
-            EcommercialSession.storeUser(userDomainModel)
+            ecommercialSession.storeUser(userDomainModel)
             _registerState.value = RegisterState.Success()
         } else {
             _registerState.value = RegisterState.Error("Unexpected error: Missing user data.")

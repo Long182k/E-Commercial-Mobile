@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class OrdersViewModel(
-    private val orderListUseCase: OrderListUseCase
+    private val orderListUseCase: OrderListUseCase,
+    private val ecommercialSession: EcommercialSession
+
 ) : ViewModel() {
 
     private val _ordersEvent = MutableStateFlow<OrdersEvent>(OrdersEvent.Loading)
@@ -22,12 +24,12 @@ class OrdersViewModel(
     val user: StateFlow<UserDomainModel?> = _user.asStateFlow()
 
     init {
-        _user.value = EcommercialSession.getUser()
-        getOrderList() // Initial fetch
+        _user.value = ecommercialSession.getUser()
+        getOrderList()
     }
 
     fun fetchOrders() {
-        getOrderList() // Expose the internal method for refetching
+        getOrderList()
     }
 
     fun filterOrders(list: List<OrdersData>, filter: String): List<OrdersData> {

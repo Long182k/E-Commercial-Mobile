@@ -65,6 +65,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
 import com.example.domain.model.Category
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
+import androidx.compose.ui.platform.testTag
 
 
 @Composable
@@ -118,6 +119,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = koinView
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .testTag("homeScreen")
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()

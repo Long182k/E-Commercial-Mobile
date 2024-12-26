@@ -60,12 +60,14 @@ import com.example.e_commercial.ui.feature.user_address.UserAddressScreen
 import com.example.e_commercial.ui.theme.ECommercialTheme
 import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.typeOf
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val ecommercialSession : EcommercialSession by inject()
             ECommercialTheme {
                 val shouldShowBottomNav = remember {
                     mutableStateOf(true)
@@ -88,7 +90,7 @@ class MainActivity : ComponentActivity() {
 
                         NavHost(
                             navController = navController,
-                            startDestination = if (EcommercialSession.getUser() != null) {
+                            startDestination = if (ecommercialSession.getUser() != null) {
                                 HomeScreen
                             } else {
                                 LoginScreen

@@ -26,8 +26,7 @@ import com.example.e_commercial.R
 import com.example.e_commercial.navigation.LoginScreen
 
 @Composable
-fun ProfileScreen(navController: NavController) {
-    val viewModel: ProfileViewModel = viewModel()
+fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = viewModel()) {
     val user by viewModel.user.observeAsState()
 
     Column(
@@ -78,33 +77,12 @@ fun ProfileScreen(navController: NavController) {
             )
         }
 
-//        Spacer(modifier = Modifier.height(32.dp))
-
-        // Profile Menu Items
-//        ProfileMenuItem(
-//            icon = R.drawable.ic_profile,
-//            title = "Edit Profile",
-//            onClick = { /* Handle edit profile */ }
-//        )
-
-//        ProfileMenuItem(
-//            icon = R.drawable.ic_settings,
-//            title = "Settings",
-//            onClick = { /* Handle settings */ }
-//        )
-//
-//        ProfileMenuItem(
-//            icon = R.drawable.ic_help,
-//            title = "Help Center",
-//            onClick = { /* Handle help center */ }
-//        )
-
         Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
         Button(
             onClick = {
-                EcommercialSession.clearUser()
+                viewModel.logout()
                 navController.navigate(LoginScreen) {
                     popUpTo(navController.graph.id) {
                         inclusive = true
@@ -122,46 +100,3 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 }
-
-//@Composable
-//fun ProfileMenuItem(
-//    @DrawableRes icon: Int,
-//    title: String,
-//    onClick: () -> Unit
-//) {
-//    Surface(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .clickable(onClick = onClick)
-//            .padding(vertical = 8.dp),
-//        color = Color.Transparent
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .padding(16.dp),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Image(
-//                painter = painterResource(id = icon),
-//                contentDescription = null,
-//                modifier = Modifier.size(24.dp),
-//                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-//            )
-//
-//            Spacer(modifier = Modifier.width(16.dp))
-//
-//            Text(
-//                text = title,
-//                style = MaterialTheme.typography.bodyLarge,
-//                modifier = Modifier.weight(1f)
-//            )
-//
-////            Icon(
-////                painter = painterResource(id = R.drawable.ic_arrow_right),
-////                contentDescription = null,
-////                tint = Color.Gray,
-////                modifier = Modifier.size(24.dp)
-////            )
-//        }
-//    }
-//}
