@@ -92,17 +92,14 @@ class CartViewModel(
             if (currentState is CartEvent.Success) {
                 val updatedCartItems = currentState.message.filter { it.id != cartItem.id }
 
-                // Optimistically update the UI
                 if (updatedCartItems.isEmpty()) {
                     _uiState.value = CartEvent.Empty("Your cart is now empty!")
                 } else {
                     _uiState.value = CartEvent.Success(updatedCartItems)
                 }
 
-                // Perform the delete operation
                 val result = deleteItem.execute(cartItem.id, userDomainModel?.id?.toLong() ?: return@launch)
                 if (result is com.example.domain.network.ResultWrapper.Failure) {
-                    // Revert to the previous state if deletion fails
                     _uiState.value = currentState
                 }
             }

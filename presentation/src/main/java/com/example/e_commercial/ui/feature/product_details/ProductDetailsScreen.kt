@@ -55,18 +55,16 @@ fun ProductDetailsScreen(
     viewModel: ProductDetailsViewModel = koinViewModel()
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Scrollable Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 72.dp) // Space for the fixed Add to Cart button
+                .padding(bottom = 72.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Product Image Frame
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp) // Frame height based on your reference
+                    .height(400.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                     .border(

@@ -1,9 +1,6 @@
 package com.example.e_commercial.ui.feature.notifications
 
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,89 +18,127 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.domain.model.OrdersData
-import com.example.domain.model.OrderProductItem
-import com.example.domain.model.AddressDomainModel
-import com.example.domain.model.Product
+import com.example.e_commercial.BottomNavItems
 import com.example.e_commercial.R
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NotificationScreen(
     navController: NavController,
-    orders: List<OrdersData>,
-    onRefetchNotifications: () -> Unit
+    viewModel: NotificationViewModel
 ) {
-    LaunchedEffect(Unit) {
-        onRefetchNotifications()
-    }
-
-    val visibleNotifications = remember {
-        mutableStateMapOf<Int, Boolean>().apply {
-            orders.forEach { order -> this[order.id] = true }
-        }
-    }
-
     Scaffold {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Back Button
-                Box(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .size(35.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                        .clickable {
-                            navController.navigateUp()
-                        }
-                        .align(Alignment.Start)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_back),
-                        contentDescription = "Navigate back",
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxSize()
-                    )
-                }
-
-                // Header or Title
-                Text(
-                    text = "Notifications",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Notification List
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(orders) { order ->
-                        val isVisible = visibleNotifications[order.id] ?: true
-                        if (isVisible) {
-                            NotificationCard(
-                                order = order,
-                                onDismiss = { visibleNotifications[order.id] = false }
+            when {
+                viewModel.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_waiting),
+                                contentDescription = "Loading",
+                                modifier = Modifier.size(100.dp)
                             )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Wait a moment.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+                viewModel.errorMessage != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = viewModel.errorMessage ?: "An error occurred.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                viewModel.orders.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_waiting),
+                                contentDescription = "No notifications available",
+                                modifier = Modifier.size(150.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Wait a moment.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Back Button
+                        Box(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(35.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                                .clickable { navController.navigateUp() }
+                                .align(Alignment.Start)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_back),
+                                contentDescription = "Navigate back",
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxSize()
+                            )
+                        }
+
+                        // Header
+                        Text(
+                            text = "Notifications",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Notification List
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            items(viewModel.orders) { order ->
+                                NotificationCard(
+                                    order = order,
+                                    onDismiss = { viewModel.dismissOrder(order.id) }
+                                )
+                            }
                         }
                     }
                 }
@@ -127,7 +162,6 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Order ID
             Text(
                 text = "Order #${order.id}",
                 style = MaterialTheme.typography.titleMedium,
@@ -136,9 +170,7 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Product List
             order.items.forEach { item ->
-                Log.d("NotificationImage", "Product: ${item.productName}, Image: ${item.image}")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -169,7 +201,6 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Order Summary
             Text(
                 text = "Total Amount: $${order.totalAmount}",
                 style = MaterialTheme.typography.bodyMedium
@@ -186,7 +217,16 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = if (order.status == "Delivered") Color.Green else Color.Red
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Add a Dismiss Button
+            Button(
+                onClick = { onDismiss() },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(text = "Dismiss")
+            }
         }
     }
 }
-
