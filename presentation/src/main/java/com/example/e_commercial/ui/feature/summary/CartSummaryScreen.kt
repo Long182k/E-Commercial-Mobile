@@ -63,37 +63,34 @@ fun CartSummaryScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Back Button and Title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
         ) {
-            // Back Button
             Box(
                 modifier = Modifier
                     .size(35.dp)
                     .clip(CircleShape)
                     .background(Color.LightGray.copy(alpha = 0.4f))
                     .clickable {
-                        navController.navigateUp() // Navigate back
+                        navController.navigateUp()
                     }
                     .align(Alignment.CenterStart)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_back), // Replace with your back icon resource
+                    painter = painterResource(id = R.drawable.ic_back),
                     contentDescription = "Back",
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxSize()
                 )
             }
-            // Title
             Text(
                 text = "Cart Summary",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center) // Center the text
+                modifier = Modifier.align(Alignment.Center)
             )
         }
 

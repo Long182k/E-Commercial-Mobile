@@ -50,6 +50,7 @@ import com.example.e_commercial.ui.feature.account.register.RegisterScreen
 import com.example.e_commercial.ui.feature.cart.CartScreen
 import com.example.e_commercial.ui.feature.home.HomeScreen
 import com.example.e_commercial.ui.feature.notifications.NotificationScreen
+import com.example.e_commercial.ui.feature.notifications.NotificationViewModel
 import com.example.e_commercial.ui.feature.orders.OrdersEvent
 import com.example.e_commercial.ui.feature.orders.OrdersScreen
 import com.example.e_commercial.ui.feature.orders.OrdersViewModel
@@ -146,27 +147,13 @@ class MainActivity : ComponentActivity() {
                             composable<NotificationScreen> {
                                 shouldShowBottomNav.value = false
 
-                                // Obtain OrdersViewModel instance using koinViewModel
-                                val viewModel: OrdersViewModel = koinViewModel()
+                                val notificationViewModel: NotificationViewModel = koinViewModel()
 
-                                // Collect the orders event state directly
-                                val uiState = viewModel.ordersEvent.collectAsState()
-
-                                // Extract orders from the UI state
-                                val orders = if (uiState.value is OrdersEvent.Success) {
-                                    (uiState.value as OrdersEvent.Success).data.sortedByDescending { it.orderDate }
-                                } else {
-                                    emptyList() // Handle loading and error states as appropriate
-                                }
-
-                                // Pass the required parameters
                                 NotificationScreen(
                                     navController = navController,
-                                    orders = orders,
-                                    onRefetchNotifications = { viewModel.fetchOrders() } // Fetch notifications when navigated
+                                    viewModel = notificationViewModel
                                 )
                             }
-
 
                         }
                     }

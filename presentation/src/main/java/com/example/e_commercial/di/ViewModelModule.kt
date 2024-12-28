@@ -4,6 +4,7 @@ import com.example.e_commercial.ui.feature.account.login.LoginViewModel
 import com.example.e_commercial.ui.feature.account.register.RegisterViewModel
 import com.example.e_commercial.ui.feature.cart.CartViewModel
 import com.example.e_commercial.ui.feature.home.HomeViewModel
+import com.example.e_commercial.ui.feature.notifications.NotificationViewModel
 import com.example.e_commercial.ui.feature.orders.OrdersViewModel
 import com.example.e_commercial.ui.feature.product_details.ProductDetailsViewModel
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
@@ -34,5 +35,8 @@ val viewModelModule = module {
 
     viewModel {
         RegisterViewModel(get(),get())
+    }
+    viewModel {
+        NotificationViewModel(get())
     }
 }
