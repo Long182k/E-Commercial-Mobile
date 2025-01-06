@@ -18,7 +18,6 @@ class LoginViewModel(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
-    // State to hold user input
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email
 
