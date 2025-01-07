@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +70,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val ecommercialSession : EcommercialSession by inject()
-            ECommercialTheme {
+            val isDarkTheme = remember { mutableStateOf(ecommercialSession.loadTheme()) }
+            ECommercialTheme(darkTheme = isDarkTheme.value) {
                 val shouldShowBottomNav = remember {
                     mutableStateOf(true)
                 }
@@ -121,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<ProfileScreen> {
                                 shouldShowBottomNav.value = true
-                                ProfileScreen(navController)
+                                ProfileScreen(navController = navController, isDarkTheme = isDarkTheme) // Pass isDarkTheme here
                             }
                             composable<CartSummaryScreen> {
                                 shouldShowBottomNav.value = false

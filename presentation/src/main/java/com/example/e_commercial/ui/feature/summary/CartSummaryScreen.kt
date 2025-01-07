@@ -117,14 +117,12 @@ fun CartSummaryScreen(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.align(Alignment.Center)
                     ) {
-                        // Show loading
                         CircularProgressIndicator()
                         Text(text = "Loading", style = MaterialTheme.typography.titleMedium)
                     }
                 }
 
                 is CartSummaryEvent.Error -> {
-                    // Show error
                     Text(
                         text = event.error,
                         style = MaterialTheme.typography.titleMedium,
@@ -201,7 +199,6 @@ fun CartSummaryScreen(
         }
 
 
-        // Show Payment Dialog
         if (showPaymentDialog.value) {
             PaymentDialog(
                 onDismiss = { showPaymentDialog.value = false },
@@ -222,7 +219,7 @@ fun CartSummaryScreenContent(cartSummary: CartSummary) {
             .fillMaxWidth()
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         // Order Summary Header
@@ -400,7 +397,7 @@ fun PriceSummaryRow(
                 .clip(CircleShape)
                 .background(
                     if (isDiscount) Color.Green.copy(alpha = 0.1f)
-                    else Color.LightGray.copy(alpha = 0.2f)
+                    else MaterialTheme.colorScheme.surface.copy(alpha = 0.2f)
                 )
                 .padding(4.dp)
         )
@@ -408,14 +405,18 @@ fun PriceSummaryRow(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface
+
         )
         Text(
             text = if (isDiscount) "- ${CurrencyUtils.formatPrice(amount)}"
             else CurrencyUtils.formatPrice(amount),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Medium,
-                color = if (isDiscount) Color.Green else Color.Black
+//                color = if (isDiscount) Color.Green else Color.Black,
+                color = MaterialTheme.colorScheme.onSurface
+
             )
         )
     }
