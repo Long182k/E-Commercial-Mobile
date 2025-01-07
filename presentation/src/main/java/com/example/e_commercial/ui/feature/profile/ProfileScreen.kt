@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,22 +27,60 @@ import com.example.e_commercial.R
 import com.example.e_commercial.navigation.LoginScreen
 
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = viewModel()) {
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: ProfileViewModel = viewModel(),
+    isDarkTheme: MutableState<Boolean>
+) {
     val user by viewModel.user.observeAsState()
-
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = if (isDarkTheme.value) "Dark Mode" else "Light Mode",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Switch(
+                checked = isDarkTheme.value,
+                onCheckedChange = { isChecked ->
+                    isDarkTheme.value = isChecked
+                    val session = EcommercialSession(context) // Use the retrieved context
+                    session.saveTheme(isChecked) // Save the theme state
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = if (isDarkTheme.value) Color.Black else Color.White,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    uncheckedTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+                )
+            )
+
+
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Profile Photo Section
         Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_profile),
@@ -60,7 +99,7 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
             Text(
                 text = currentUser.name,
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             )
         }
@@ -72,7 +111,6 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
             Text(
                 text = currentUser.email,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color.Gray
                 )
             )
         }
@@ -93,7 +131,8 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
             )
         ) {
             Text(text = "Log Out")

@@ -42,4 +42,16 @@ class EcommercialSession(private val context: Context) {
             apply()
         }
     }
+
+    fun saveTheme(isDarkTheme: Boolean) {
+        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean("isDarkTheme", isDarkTheme)
+            apply()
+        }
+    }
+    fun loadTheme(): Boolean {
+        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        return sharedPref.getBoolean("isDarkTheme", false)
+    }
 }
