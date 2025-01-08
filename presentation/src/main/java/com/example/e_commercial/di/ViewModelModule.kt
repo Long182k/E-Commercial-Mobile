@@ -39,4 +39,7 @@ val viewModelModule = module {
     viewModel {
         NotificationViewModel(get())
     }
+    viewModel {
+        ProfileViewModel()
+    }
 }

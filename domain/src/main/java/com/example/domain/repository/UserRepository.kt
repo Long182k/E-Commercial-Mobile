@@ -11,4 +11,7 @@ interface UserRepository {
         password: String,
         name: String
     ): ResultWrapper<UserDomainModel>
+
+    suspend fun changePassword(email: String, oldPassword: String, newPassword: String)
+
 }

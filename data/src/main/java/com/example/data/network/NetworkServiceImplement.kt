@@ -5,6 +5,7 @@ import com.example.data.model.CategoryDataModel
 import com.example.data.model.DataProductModel
 import com.example.data.model.request.AddToCartRequest
 import com.example.data.model.request.AddressDataModel
+import com.example.data.model.request.ChangePasswordRequest
 import com.example.data.model.request.LoginRequest
 import com.example.data.model.request.RegisterRequest
 import com.example.data.model.response.CartResponse
@@ -205,6 +206,20 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
                 user.data?.toDomainModel()
                     ?: throw IllegalStateException("Missing 'data' field in UserAuthResponse")
             }
+        )
+    }
+
+    override suspend fun changePassword(
+        email: String,
+        oldPassword: String,
+        newPassword: String
+    ): ResultWrapper<Unit> {
+        val url = "$baseUrl/auth/change-password"
+        return makeWebRequest<Unit, Unit>(
+            url = url,
+            method = HttpMethod.Post,
+            body = ChangePasswordRequest(email, oldPassword, newPassword),
+            mapper = { Unit }
         )
     }
 
