@@ -1,6 +1,7 @@
 package com.example.e_commercial
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -72,6 +73,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val ecommercialSession : EcommercialSession by inject()
+            
+            val user = ecommercialSession.getUser()
+            Log.d("MainActivity", "User: $user")
+            Log.d("MainActivity", "User details - " +
+                "id: ${user?.id}, " +
+                "name: ${user?.name}, " +
+                "email: ${user?.email}, " +
+                "username: ${user?.username}, " +
+                "avatarUrl: ${user?.avatarUrl}"
+            )
+
             val isDarkTheme = remember { mutableStateOf(ecommercialSession.loadTheme()) }
             ECommercialTheme(darkTheme = isDarkTheme.value) {
                 val shouldShowBottomNav = remember {

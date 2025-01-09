@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.activity.compose)
+
 
     // Coil for image loading
     implementation(libs.coil.compose)

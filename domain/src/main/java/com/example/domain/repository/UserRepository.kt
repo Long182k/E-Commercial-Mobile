@@ -15,4 +15,5 @@ interface UserRepository {
     suspend fun changePassword(email: String, oldPassword: String, newPassword: String)
 
     suspend fun forgotPassword(email: String): ResultWrapper<Unit>
+    suspend fun editProfile(email: String, name: String, avatarUrl: String): ResultWrapper<Unit>
 }

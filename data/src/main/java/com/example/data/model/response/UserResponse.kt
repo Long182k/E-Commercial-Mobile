@@ -7,12 +7,14 @@ data class UserResponse(
     val id: Int?,
     val username: String,
     val email: String,
-    val name: String
+    val name: String,
+    val avatarUrl: String? = null
 ) {
     fun toDomainModel() = com.example.domain.model.UserDomainModel(
         id = id,
         username = username,
         email = email,
-        name = name
+        name = name,
+        avatarUrl = avatarUrl
     )
 }

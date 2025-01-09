@@ -16,6 +16,7 @@ class ProductDetailsViewModel(val useCase: AddToCartUseCase, private val ecommer
     private val _state = MutableStateFlow<ProductDetailsEvent>(ProductDetailsEvent.Nothing)
     val state = _state.asStateFlow()
     val userDomainModel = ecommercialSession.getUser()
+    
     fun addProductToCart(product: UIProductModel) {
         viewModelScope.launch {
             _state.value = ProductDetailsEvent.Loading

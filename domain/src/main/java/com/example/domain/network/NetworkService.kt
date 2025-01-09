@@ -36,6 +36,7 @@ interface NetworkService {
 
     suspend fun changePassword(email: String, oldPassword: String, newPassword: String): ResultWrapper<Unit>
     suspend fun forgotPassword(email: String): ResultWrapper<Unit>
+    suspend fun editProfile(email: String, name: String, avatarUrl: String): ResultWrapper<Unit>
 
 }
 

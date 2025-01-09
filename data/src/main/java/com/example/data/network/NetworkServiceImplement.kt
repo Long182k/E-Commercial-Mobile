@@ -43,9 +43,13 @@ import io.ktor.http.Parameters
 import io.ktor.http.contentType
 import io.ktor.util.InternalAPI
 import io.ktor.utils.io.errors.IOException
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.forms.submitFormWithBinaryData
 
 class NetworkServiceImplement(val client: HttpClient) : NetworkService {
-    private val baseUrl = "http://192.168.1.15:8081"
+    private val baseUrl = "http://192.168.2.205:8081"
 
     override suspend fun getProducts(category: Int?): ResultWrapper<ProductListModel> {
         val url ="$baseUrl/products"
@@ -232,6 +236,36 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
             mapper = { Unit }
         )
     }
+
+    override suspend fun editProfile(email: String, name: String, avatarUrl: String): ResultWrapper<Unit> {
+        println("editProfile Network zzzzz: $email $name $avatarUrl")
+        val url = "$baseUrl/auth/edit-profile"
+        
+        return try {
+            val response = client.submitFormWithBinaryData(
+                url = url,
+                formData = formData {
+                    append("email", email)
+                    append("name", name)
+                    append("avatarUrl", avatarUrl)
+                }
+            ) {
+                method = HttpMethod.Put
+                contentType(ContentType.MultiPart.FormData)
+            }
+            ResultWrapper.Success(Unit)
+        } catch (e: ClientRequestException) {
+            ResultWrapper.Failure(e)
+        } catch (e: ServerResponseException) {
+            ResultWrapper.Failure(e)
+        } catch (e: IOException) {
+            ResultWrapper.Failure(e)
+        } catch (e: Exception) {
+            ResultWrapper.Failure(e)
+        }
+    }
+
+    
 
 
     override suspend fun register(

@@ -18,4 +18,8 @@ class UserRepositoryImplement(private val networkService: NetworkService) : User
     override suspend fun forgotPassword(email: String): ResultWrapper<Unit> {
         return networkService.forgotPassword(email)
     }
+
+    override suspend fun editProfile(email: String, name: String, avatarUrl: String): ResultWrapper<Unit> {
+        return networkService.editProfile(email, name, avatarUrl)
+    }
 }

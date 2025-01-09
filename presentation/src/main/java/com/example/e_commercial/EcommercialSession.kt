@@ -15,6 +15,7 @@ class EcommercialSession(private val context: Context) {
             putString("username", user.username)
             putString("email", user.email)
             putString("name", user.name)
+            putString("avatarUrl", user.avatarUrl)
             apply()
         }
     }
@@ -25,8 +26,9 @@ class EcommercialSession(private val context: Context) {
         val username = sharedPref.getString("username", null)
         val email = sharedPref.getString("email", null)
         val name = sharedPref.getString("name", null)
-        return if (id != 0 && username != null && email != null && name != null) {
-            UserDomainModel(id, username, email, name)
+        val avatarUrl = sharedPref.getString("avatarUrl", null)
+        return if (id != 0 && username != null && email != null && name != null && avatarUrl != null) {
+            UserDomainModel(id, username, email, name,avatarUrl)
         } else {
             null
         }
@@ -39,6 +41,7 @@ class EcommercialSession(private val context: Context) {
             remove("username")
             remove("email")
             remove("name")
+            remove("avatarUrl")
             apply()
         }
     }

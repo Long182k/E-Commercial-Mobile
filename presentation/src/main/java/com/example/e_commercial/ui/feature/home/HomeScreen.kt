@@ -343,6 +343,7 @@ fun ProfileHeader(
     onCartClicked: () -> Unit,
     navController: NavController,
     viewModel: ProfileViewModel = viewModel() // Use ProfileViewModel here
+
 ) {
     // Access the user state directly with .value
     val user = viewModel.user.observeAsState()

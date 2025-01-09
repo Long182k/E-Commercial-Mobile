@@ -26,6 +26,10 @@ import androidx.navigation.NavController
 import com.example.e_commercial.EcommercialSession
 import com.example.e_commercial.R
 import com.example.e_commercial.navigation.LoginScreen
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ProfileScreen(
@@ -33,7 +37,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     isDarkTheme: MutableState<Boolean>
 ) {
-    val user by viewModel.user.observeAsState()
+    val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
     val isDialogVisible = remember { mutableStateOf(false) }
     val isAvatarDialogVisible = remember { mutableStateOf(false) }
@@ -51,9 +55,25 @@ fun ProfileScreen(
             viewModel.resetChangePasswordState() // Reset the state after showing error
         }
     }
+    
+    val user by viewModel.user.observeAsState()
 
     var editedName by remember { mutableStateOf("") }
+    var editedAvatarUri by remember { mutableStateOf<String?>(null) }
     var isEditingName by remember { mutableStateOf(false) }
+
+    // Handle state updates
+    LaunchedEffect(state) {
+        when (state) {
+            is ProfileEvent.Success -> {
+                Toast.makeText(context, (state as ProfileEvent.Success).message, Toast.LENGTH_SHORT).show()
+            }
+            is ProfileEvent.Error -> {
+                Toast.makeText(context, (state as ProfileEvent.Error).message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -121,8 +141,7 @@ fun ProfileScreen(
                 onDismiss = { isAvatarDialogVisible.value = false },
                 onImageSelected = { newAvatarUri ->
                     isAvatarDialogVisible.value = false
-                    viewModel.updateUserAvatar(newAvatarUri)
-                    Toast.makeText(context, "Avatar updated successfully!", Toast.LENGTH_SHORT).show()
+                    editedAvatarUri = newAvatarUri
                 }
             )
         }
@@ -146,30 +165,55 @@ fun ProfileScreen(
 
         // Name Edit Section
         if (isEditingName) {
-            OutlinedTextField(
-                value = editedName,
-                onValueChange = { editedName = it },
-                label = { Text("Edit Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        isEditingName = false
-                        viewModel.updateUserName(editedName)
-                        Toast.makeText(context, "Name updated successfully!", Toast.LENGTH_SHORT).show()
+            AlertDialog(
+                onDismissRequest = { isEditingName = false },
+                title = { Text("Edit Profile") },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = editedName,
+                            onValueChange = { editedName = it },
+                            label = { Text("Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Button(
+                            onClick = { isAvatarDialogVisible.value = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Change Avatar")
+                        }
                     }
-                ) {
-                    Text("Save")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus()
+                            isEditingName = false
+                            user?.let { currentUser ->
+                                viewModel.editProfile(
+                                    email = currentUser.email,
+                                    name = editedName,
+                                    avatarUrl = editedAvatarUri ?: currentUser.avatarUrl ?: ""
+                                )
+                            }
+                            Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { isEditingName = false }) {
+                        Text("Cancel")
+                    }
                 }
-                Button(onClick = { isEditingName = false }) {
-                    Text("Cancel")
-                }
-            }
+            )
         } else {
             Button(
                 onClick = {
@@ -346,16 +390,23 @@ fun AvatarSelectionDialog(
     onDismiss: () -> Unit,
     onImageSelected: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { 
+            val avatarUrl = uri.toString()
+            onImageSelected(avatarUrl)
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Change Avatar") },
-        text = { Text("Select a new avatar from your gallery or take a photo.") },
+        text = { Text("Select a new avatar from your device") },
         confirmButton = {
-            Button(onClick = {
-                val newImageUri = "dummy_image_uri"
-                onImageSelected(newImageUri)
-            }) {
-                Text("Select Image")
+            Button(onClick = { launcher.launch("image/*") }) {
+                Text("Choose File")
             }
         },
         dismissButton = {
