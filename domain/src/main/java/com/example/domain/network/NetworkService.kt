@@ -35,6 +35,8 @@ interface NetworkService {
     ): ResultWrapper<UserDomainModel>
 
     suspend fun changePassword(email: String, oldPassword: String, newPassword: String): ResultWrapper<Unit>
+    suspend fun forgotPassword(email: String): ResultWrapper<Unit>
+
 }
 
 sealed class ResultWrapper<out T> {

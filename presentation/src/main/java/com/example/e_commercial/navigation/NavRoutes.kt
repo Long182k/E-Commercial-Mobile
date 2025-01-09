@@ -28,6 +28,9 @@ object ProfileScreen
 object CartSummaryScreen
 
 @Serializable
+object ForgotPasswordScreen
+
+@Serializable
 data class ProductDetails(val product: UIProductModel)
 
 @Serializable

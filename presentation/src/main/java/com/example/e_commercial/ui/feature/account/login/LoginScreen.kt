@@ -41,7 +41,7 @@ import com.example.e_commercial.navigation.RegisterScreen
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.Text
-
+import com.example.e_commercial.navigation.ForgotPasswordScreen
 
 
 @Composable
@@ -87,7 +87,6 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinVi
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
-
                 }
                 is LoginState.Loading -> {
                     CircularProgressIndicator(
@@ -104,11 +103,14 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = koinVi
                 onEmailChange = viewModel::updateEmail,
                 onPasswordChange = viewModel::updatePassword,
                 onSignInClicked = { viewModel.login() },
-                onRegisterClick = { navController.navigate(RegisterScreen) }
+                onRegisterClick = { navController.navigate(RegisterScreen) },
+                onForgotPasswordClick = { navController.navigate(ForgotPasswordScreen) }
             )
         }
     }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,7 +120,8 @@ fun LoginContent(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onSignInClicked: () -> Unit,
-    onRegisterClick: () -> Unit
+    onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -127,7 +130,7 @@ fun LoginContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Email Input Field with Icon
+        // Email Input Field
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
@@ -146,7 +149,7 @@ fun LoginContent(
             textStyle = MaterialTheme.typography.bodyLarge
         )
 
-        // Password Input Field with Icon
+        // Password Input Field
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
@@ -166,7 +169,7 @@ fun LoginContent(
             textStyle = MaterialTheme.typography.bodyLarge
         )
 
-        // Sign In Button with Icon
+        // Sign In Button
         Button(
             onClick = onSignInClicked,
             modifier = Modifier.fillMaxWidth().testTag("loginButton"),
@@ -188,6 +191,16 @@ fun LoginContent(
             )
         }
 
+        // Forgot Password Text
+        Text(
+            text = stringResource(id = R.string.forgot_password),
+            modifier = Modifier
+                .clickable { onForgotPasswordClick() }
+                .padding(top = 8.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.secondary
+        )
+
         // Navigation to Register Screen
         Text(
             text = stringResource(id = R.string.dont_have_account),
@@ -197,7 +210,3 @@ fun LoginContent(
         )
     }
 }
-
-
-
-
