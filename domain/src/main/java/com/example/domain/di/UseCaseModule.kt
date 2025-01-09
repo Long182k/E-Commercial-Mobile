@@ -2,6 +2,7 @@ package com.example.domain.di
 
 import com.example.domain.usecase.AddToCartUseCase
 import com.example.domain.usecase.CartSummaryUseCase
+import com.example.domain.usecase.ChangePasswordUseCase
 import com.example.domain.usecase.DeleteProductUseCase
 import com.example.domain.usecase.GetCartUseCase
 import com.example.domain.usecase.GetCategoriesUseCase
@@ -25,4 +26,5 @@ val useCaseModule = module {
     factory { OrderListUseCase(get()) }
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
+    factory { ChangePasswordUseCase(get()) }
 }

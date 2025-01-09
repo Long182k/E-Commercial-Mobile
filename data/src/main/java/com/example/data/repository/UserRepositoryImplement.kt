@@ -9,4 +9,9 @@ class UserRepositoryImplement(private val networkService: NetworkService) : User
 
     override suspend fun login(email: String, password: String) =
         networkService.login(email, password)
+
+    override suspend fun changePassword(email: String, oldPassword: String, newPassword: String) {
+        networkService.changePassword(email, oldPassword, newPassword)
+    }
+
 }
