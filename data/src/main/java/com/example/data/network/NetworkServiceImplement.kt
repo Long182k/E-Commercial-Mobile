@@ -223,6 +223,16 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
         )
     }
 
+    override suspend fun forgotPassword(email: String): ResultWrapper<Unit> {
+        val url = "$baseUrl/auth/forgot-password"
+        return makeWebRequest<Unit, Unit>(
+            url = url,
+            method = HttpMethod.Post,
+            body = mapOf("email" to email),
+            mapper = { Unit }
+        )
+    }
+
 
     override suspend fun register(
         email: String,

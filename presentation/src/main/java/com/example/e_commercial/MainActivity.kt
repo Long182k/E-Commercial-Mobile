@@ -35,6 +35,7 @@ import androidx.navigation.toRoute
 import com.example.e_commercial.model.UIProductModel
 import com.example.e_commercial.navigation.CartScreen
 import com.example.e_commercial.navigation.CartSummaryScreen
+import com.example.e_commercial.navigation.ForgotPasswordScreen
 import com.example.e_commercial.navigation.HomeScreen
 import com.example.e_commercial.navigation.LoginScreen
 import com.example.e_commercial.navigation.NotificationScreen
@@ -46,6 +47,7 @@ import com.example.e_commercial.navigation.UserAddressRoute
 import com.example.e_commercial.navigation.UserAddressRouteWrapper
 import com.example.e_commercial.navigation.productNavType
 import com.example.e_commercial.navigation.userAddressNavType
+import com.example.e_commercial.ui.feature.account.forgotpassword.ForgotPasswordScreen
 import com.example.e_commercial.ui.feature.account.login.LoginScreen
 import com.example.e_commercial.ui.feature.account.register.RegisterScreen
 import com.example.e_commercial.ui.feature.cart.CartScreen
@@ -155,6 +157,11 @@ class MainActivity : ComponentActivity() {
                                     navController = navController,
                                     viewModel = notificationViewModel
                                 )
+                            }
+
+                            composable<ForgotPasswordScreen> {
+                                shouldShowBottomNav.value = false
+                                ForgotPasswordScreen(navController)
                             }
 
                         }

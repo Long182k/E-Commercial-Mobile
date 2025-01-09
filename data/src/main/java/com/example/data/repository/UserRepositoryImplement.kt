@@ -1,6 +1,7 @@
 package com.example.data.repository
 
 import com.example.domain.network.NetworkService
+import com.example.domain.network.ResultWrapper
 import com.example.domain.repository.UserRepository
 
 class UserRepositoryImplement(private val networkService: NetworkService) : UserRepository {
@@ -14,4 +15,7 @@ class UserRepositoryImplement(private val networkService: NetworkService) : User
         networkService.changePassword(email, oldPassword, newPassword)
     }
 
+    override suspend fun forgotPassword(email: String): ResultWrapper<Unit> {
+        return networkService.forgotPassword(email)
+    }
 }

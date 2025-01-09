@@ -1,5 +1,6 @@
 package com.example.e_commercial.di
 
+import com.example.e_commercial.ui.feature.account.forgotpassword.ForgotPasswordViewModel
 import com.example.e_commercial.ui.feature.account.login.LoginViewModel
 import com.example.e_commercial.ui.feature.account.register.RegisterViewModel
 import com.example.e_commercial.ui.feature.cart.CartViewModel
@@ -42,4 +43,8 @@ val viewModelModule = module {
     viewModel {
         ProfileViewModel()
     }
+    viewModel {
+        ForgotPasswordViewModel(get())
+    }
+
 }

@@ -4,6 +4,7 @@ import com.example.domain.usecase.AddToCartUseCase
 import com.example.domain.usecase.CartSummaryUseCase
 import com.example.domain.usecase.ChangePasswordUseCase
 import com.example.domain.usecase.DeleteProductUseCase
+import com.example.domain.usecase.ForgotPasswordUseCase
 import com.example.domain.usecase.GetCartUseCase
 import com.example.domain.usecase.GetCategoriesUseCase
 import com.example.domain.usecase.GetProductUseCase
@@ -27,4 +28,5 @@ val useCaseModule = module {
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
     factory { ChangePasswordUseCase(get()) }
+    factory { ForgotPasswordUseCase(get()) }
 }
