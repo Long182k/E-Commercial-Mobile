@@ -49,6 +49,11 @@ class ProfileViewModel : ViewModel(), KoinComponent {
     fun updateUserAvatar(newAvatarUrl: String) {
 
     }
+
+    fun resetChangePasswordState() {
+        _changePasswordState.value = null
+    }
+
 }
 
 

@@ -38,6 +38,19 @@ fun ProfileScreen(
     val isDialogVisible = remember { mutableStateOf(false) }
     val isAvatarDialogVisible = remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val changePasswordState by viewModel.changePasswordState.observeAsState()
+
+    // Observe password change state and show success or error messages
+    changePasswordState?.let { result ->
+        result.onSuccess {
+            Toast.makeText(context, "Password changed successfully!", Toast.LENGTH_SHORT).show()
+            viewModel.resetChangePasswordState() // Reset the state after showing success
+        }
+        result.onFailure { exception ->
+            Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+            viewModel.resetChangePasswordState() // Reset the state after showing error
+        }
+    }
 
     var editedName by remember { mutableStateOf("") }
     var isEditingName by remember { mutableStateOf(false) }
@@ -228,6 +241,33 @@ fun ChangePasswordDialog(
         val focusManager = LocalFocusManager.current
         var oldPassword by remember { mutableStateOf("") }
         var newPassword by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf("") }
+
+        // Validation function
+        fun validateInputs(): Boolean {
+            return when {
+                oldPassword.isEmpty() -> {
+                    errorMessage = "Old password cannot be empty."
+                    false
+                }
+                newPassword.isEmpty() -> {
+                    errorMessage = "New password cannot be empty."
+                    false
+                }
+                newPassword.length < 8 -> {
+                    errorMessage = "New password must be at least 8 characters long."
+                    false
+                }
+                oldPassword == newPassword -> {
+                    errorMessage = "New password must be different from the old password."
+                    false
+                }
+                else -> {
+                    errorMessage = ""
+                    true
+                }
+            }
+        }
 
         AlertDialog(
             onDismissRequest = {
@@ -237,6 +277,7 @@ fun ChangePasswordDialog(
             title = { Text(text = "Change Password") },
             text = {
                 Column {
+                    // Email Field (read-only)
                     OutlinedTextField(
                         value = defaultEmail,
                         onValueChange = {},
@@ -245,6 +286,8 @@ fun ChangePasswordDialog(
                         enabled = false
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    // Old Password Field
                     OutlinedTextField(
                         value = oldPassword,
                         onValueChange = { oldPassword = it },
@@ -253,6 +296,8 @@ fun ChangePasswordDialog(
                         visualTransformation = PasswordVisualTransformation()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+
+                    // New Password Field
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
@@ -260,13 +305,26 @@ fun ChangePasswordDialog(
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation()
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Error Message (if any)
+                    if (errorMessage.isNotEmpty()) {
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             },
             confirmButton = {
                 Button(onClick = {
                     focusManager.clearFocus()
-                    onSubmit(defaultEmail, oldPassword, newPassword)
-                    isVisible.value = false
+                    if (validateInputs()) {
+                        onSubmit(defaultEmail, oldPassword, newPassword)
+                        isVisible.value = false
+                    }
                 }) {
                     Text("Change Password")
                 }
