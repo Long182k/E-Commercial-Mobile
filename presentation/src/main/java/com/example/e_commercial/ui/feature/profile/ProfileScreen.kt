@@ -1,10 +1,10 @@
 package com.example.e_commercial.ui.feature.profile
 
 import android.widget.Toast
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -36,7 +36,11 @@ fun ProfileScreen(
     val user by viewModel.user.observeAsState()
     val context = LocalContext.current
     val isDialogVisible = remember { mutableStateOf(false) }
-//    val changePasswordState by viewModel.changePasswordState.observeAsState()
+    val isAvatarDialogVisible = remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    var editedName by remember { mutableStateOf("") }
+    var isEditingName by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -45,6 +49,7 @@ fun ProfileScreen(
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Dark Mode Toggle
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -76,12 +81,14 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Avatar Section
         Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
+                .clickable { isAvatarDialogVisible.value = true }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_profile),
@@ -95,18 +102,27 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        user?.let { currentUser ->
-            Text(
-                text = currentUser.name,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                )
+        // Edit Avatar Dialog
+        if (isAvatarDialogVisible.value) {
+            AvatarSelectionDialog(
+                onDismiss = { isAvatarDialogVisible.value = false },
+                onImageSelected = { newAvatarUri ->
+                    isAvatarDialogVisible.value = false
+                    viewModel.updateUserAvatar(newAvatarUri)
+                    Toast.makeText(context, "Avatar updated successfully!", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        // User Details Section
         user?.let { currentUser ->
+            Text(
+                text = currentUser.name,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = currentUser.email,
                 style = MaterialTheme.typography.bodyLarge.copy()
@@ -114,6 +130,47 @@ fun ProfileScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Name Edit Section
+        if (isEditingName) {
+            OutlinedTextField(
+                value = editedName,
+                onValueChange = { editedName = it },
+                label = { Text("Edit Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = {
+                        focusManager.clearFocus()
+                        isEditingName = false
+                        viewModel.updateUserName(editedName)
+                        Toast.makeText(context, "Name updated successfully!", Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Text("Save")
+                }
+                Button(onClick = { isEditingName = false }) {
+                    Text("Cancel")
+                }
+            }
+        } else {
+            Button(
+                onClick = {
+                    isEditingName = true
+                    editedName = user?.name.orEmpty()
+                },
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Text(text = "Edit Profile")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
 
         // Change Password Button
         Button(
@@ -126,33 +183,26 @@ fun ProfileScreen(
         }
 
         // Change Password Dialog
-        user?.let { currentUser ->
-            ChangePasswordDialog(
-                isVisible = isDialogVisible,
-                defaultEmail = currentUser.email ?: "",
-                onSubmit = { email, oldPassword, newPassword ->
-                    viewModel.changePassword(email, oldPassword, newPassword)
-                }
-            )
+        if (isDialogVisible.value) {
+            user?.let { currentUser ->
+                ChangePasswordDialog(
+                    isVisible = isDialogVisible,
+                    defaultEmail = currentUser.email,
+                    onSubmit = { email, oldPassword, newPassword ->
+                        viewModel.changePassword(email, oldPassword, newPassword)
+                    }
+                )
+            }
         }
-
-//        changePasswordState?.let { result ->
-//            result.onSuccess {
-//                Toast.makeText(context, "Password changed successfully!", Toast.LENGTH_SHORT).show()
-//            }.onFailure {
-//                Toast.makeText(context, "Error: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
-//            }
-//        }
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Logout Button
         Button(
             onClick = {
                 viewModel.logout()
                 navController.navigate(LoginScreen) {
-                    popUpTo(navController.graph.id) {
-                        inclusive = true
-                    }
+                    popUpTo(navController.graph.id) { inclusive = true }
                 }
             },
             modifier = Modifier
@@ -181,7 +231,7 @@ fun ChangePasswordDialog(
 
         AlertDialog(
             onDismissRequest = {
-                focusManager.clearFocus() // Clear focus when dismissed
+                focusManager.clearFocus()
                 isVisible.value = false
             },
             title = { Text(text = "Change Password") },
@@ -192,7 +242,7 @@ fun ChangePasswordDialog(
                         onValueChange = {},
                         label = { Text("Email") },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = false // Email field is non-editable
+                        enabled = false
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
@@ -231,4 +281,29 @@ fun ChangePasswordDialog(
             }
         )
     }
+}
+
+@Composable
+fun AvatarSelectionDialog(
+    onDismiss: () -> Unit,
+    onImageSelected: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change Avatar") },
+        text = { Text("Select a new avatar from your gallery or take a photo.") },
+        confirmButton = {
+            Button(onClick = {
+                val newImageUri = "dummy_image_uri"
+                onImageSelected(newImageUri)
+            }) {
+                Text("Select Image")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
