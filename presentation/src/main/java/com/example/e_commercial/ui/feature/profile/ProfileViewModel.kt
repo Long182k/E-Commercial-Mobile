@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.model.UserDomainModel
 import com.example.domain.network.ResultWrapper
 import com.example.domain.usecase.ChangePasswordUseCase
+import com.example.domain.usecase.UpdateUserDetailsUseCase
 import com.example.e_commercial.EcommercialSession
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -15,6 +16,7 @@ import org.koin.core.component.inject
 class ProfileViewModel : ViewModel(), KoinComponent {
     private val session: EcommercialSession by inject()
     private val changePasswordUseCase: ChangePasswordUseCase by inject()
+    private val updateUserDetailsUseCase: UpdateUserDetailsUseCase by inject()
 
     private val _user = MutableLiveData<UserDomainModel>()
     val user: LiveData<UserDomainModel> get() = _user
@@ -39,6 +41,13 @@ class ProfileViewModel : ViewModel(), KoinComponent {
             }
             _changePasswordState.postValue(result)
         }
+    }
+
+    fun updateUserName(newName: String) {
+
+    }
+    fun updateUserAvatar(newAvatarUrl: String) {
+
     }
 }
 
