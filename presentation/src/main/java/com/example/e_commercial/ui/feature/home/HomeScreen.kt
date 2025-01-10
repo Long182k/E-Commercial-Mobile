@@ -346,11 +346,15 @@ fun ProductsSection(
 fun ProfileHeader(
     onCartClicked: () -> Unit,
     navController: NavController,
-    viewModel: ProfileViewModel = viewModel() // Use ProfileViewModel here
-
+    viewModel: ProfileViewModel = koinViewModel()
 ) {
-    // Access the user state directly with .value
     val user = viewModel.user.observeAsState()
+    val refreshTrigger = viewModel.userRefreshTrigger.collectAsState()
+    
+    // Refresh user data when trigger changes
+    LaunchedEffect(refreshTrigger.value) {
+        viewModel.refreshUserData()
+    }
 
     Card(
         modifier = Modifier

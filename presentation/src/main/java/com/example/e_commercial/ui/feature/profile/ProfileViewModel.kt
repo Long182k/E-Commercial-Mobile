@@ -15,6 +15,7 @@ import com.example.domain.usecase.EditProfileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.domain.model.ProfileFormData
+import kotlinx.coroutines.flow.collect
 
 class ProfileViewModel : ViewModel(), KoinComponent {
     private val editProfileUseCase: EditProfileUseCase by inject()
@@ -27,7 +28,14 @@ class ProfileViewModel : ViewModel(), KoinComponent {
     private val _changePasswordState = MutableLiveData<Result<Unit>?>()
     val changePasswordState: MutableLiveData<Result<Unit>?> get() = _changePasswordState
 
+    private val _userRefreshTrigger = MutableStateFlow(0)
+    val userRefreshTrigger = _userRefreshTrigger.asStateFlow()
+
     init {
+        refreshUserData()
+    }
+
+    fun refreshUserData() {
         _user.value = session.getUser()
     }
 
@@ -69,7 +77,9 @@ class ProfileViewModel : ViewModel(), KoinComponent {
                         )
                         session.storeUser(updatedUser)
                     }
-                    _user.value = session.getUser()
+                    
+                    refreshUserData()
+                    _userRefreshTrigger.value += 1
                     
                     _state.value = ProfileEvent.Success("Profile updated successfully")
                 }
