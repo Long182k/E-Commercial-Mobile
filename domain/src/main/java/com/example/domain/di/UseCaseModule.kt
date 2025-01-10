@@ -13,6 +13,7 @@ import com.example.domain.usecase.OrderListUseCase
 import com.example.domain.usecase.PlaceOrderUseCase
 import com.example.domain.usecase.RegisterUseCase
 import com.example.domain.usecase.UpdateQuantityUseCase
+import com.example.domain.usecase.EditProfileUseCase
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -29,4 +30,5 @@ val useCaseModule = module {
     factory { RegisterUseCase(get()) }
     factory { ChangePasswordUseCase(get()) }
     factory { ForgotPasswordUseCase(get()) }
+    factory { EditProfileUseCase(get()) }
 }

@@ -1,6 +1,7 @@
 package com.example.e_commercial
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -65,105 +66,131 @@ import com.example.e_commercial.ui.theme.ECommercialTheme
 import org.koin.androidx.compose.koinViewModel
 import kotlin.reflect.typeOf
 import org.koin.android.ext.android.inject
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
+import coil.ImageLoader
+import com.example.e_commercial.di.createImageLoader
+import coil.compose.LocalImageLoader
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Create custom ImageLoader
+        val imageLoader = createImageLoader(applicationContext)
+        
         setContent {
             val ecommercialSession : EcommercialSession by inject()
+            
+            val user = ecommercialSession.getUser()
+            Log.d("MainActivity", "User: $user")
+            Log.d("MainActivity", "User details - " +
+                "id: ${user?.id}, " +
+                "name: ${user?.name}, " +
+                "email: ${user?.email}, " +
+                "username: ${user?.username}, " +
+                "avatarUrl: ${user?.avatarUrl}"
+            )
+
             val isDarkTheme = remember { mutableStateOf(ecommercialSession.loadTheme()) }
-            ECommercialTheme(darkTheme = isDarkTheme.value) {
-                val shouldShowBottomNav = remember {
-                    mutableStateOf(true)
-                }
-                val navController = rememberNavController()
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        AnimatedVisibility(visible = shouldShowBottomNav.value, enter = fadeIn()) {
-                            BottomNavigationBar(navController)
-                        }
-
+            
+            // Explicitly provide the ImageLoader
+            CompositionLocalProvider(
+                values = arrayOf(LocalImageLoader provides imageLoader)
+            ) {
+                ECommercialTheme(darkTheme = isDarkTheme.value) {
+                    val shouldShowBottomNav = remember {
+                        mutableStateOf(true)
                     }
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(it)
-                    ) {
-
-                        NavHost(
-                            navController = navController,
-                            startDestination = if (ecommercialSession.getUser() != null) {
-                                HomeScreen
-                            } else {
-                                LoginScreen
+                    val navController = rememberNavController()
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            AnimatedVisibility(visible = shouldShowBottomNav.value, enter = fadeIn()) {
+                                BottomNavigationBar(navController)
                             }
+
+                        }
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(it)
                         ) {
 
-                            composable<LoginScreen> {
-                                shouldShowBottomNav.value = false
-                                LoginScreen(navController)
-                            }
-                            composable<RegisterScreen> {
-                                shouldShowBottomNav.value = false
-                                RegisterScreen(navController)
-                            }
-                            composable<CartScreen> {
-                                shouldShowBottomNav.value = true
-                                CartScreen(navController)
-                            }
-
-                            composable<HomeScreen> {
-                                shouldShowBottomNav.value = true
-                                HomeScreen(navController)
-                            }
-                            composable<OrdersScreen> {
-                                shouldShowBottomNav.value = true
-                                OrdersScreen()
-                            }
-                            composable<ProfileScreen> {
-                                shouldShowBottomNav.value = true
-                                ProfileScreen(navController = navController, isDarkTheme = isDarkTheme) // Pass isDarkTheme here
-                            }
-                            composable<CartSummaryScreen> {
-                                shouldShowBottomNav.value = false
-                                CartSummaryScreen(navController = navController)
-                            }
-                            composable<ProductDetails>(
-                                typeMap = mapOf(typeOf<UIProductModel>() to productNavType)
+                            NavHost(
+                                navController = navController,
+                                startDestination = if (ecommercialSession.getUser() != null) {
+                                    HomeScreen
+                                } else {
+                                    LoginScreen
+                                }
                             ) {
-                                shouldShowBottomNav.value = false
-                                val productRoute = it.toRoute<ProductDetails>()
-                                ProductDetailsScreen(navController, productRoute.product)
-                            }
-                            composable<UserAddressRoute>(
-                                typeMap = mapOf(typeOf<UserAddressRouteWrapper>() to userAddressNavType)
-                            ) {
-                                shouldShowBottomNav.value = false
-                                val userAddressRoute = it.toRoute<UserAddressRoute>()
-                                UserAddressScreen(
-                                    navController = navController,
-                                    userAddress = userAddressRoute.userAddressWrapper.userAddress
-                                )
-                            }
-                            composable<NotificationScreen> {
-                                shouldShowBottomNav.value = false
 
-                                val notificationViewModel: NotificationViewModel = koinViewModel()
+                                composable<LoginScreen> {
+                                    shouldShowBottomNav.value = false
+                                    LoginScreen(navController)
+                                }
+                                composable<RegisterScreen> {
+                                    shouldShowBottomNav.value = false
+                                    RegisterScreen(navController)
+                                }
+                                composable<CartScreen> {
+                                    shouldShowBottomNav.value = true
+                                    CartScreen(navController)
+                                }
 
-                                NotificationScreen(
-                                    navController = navController,
-                                    viewModel = notificationViewModel
-                                )
+                                composable<HomeScreen> {
+                                    shouldShowBottomNav.value = true
+                                    HomeScreen(navController)
+                                }
+                                composable<OrdersScreen> {
+                                    shouldShowBottomNav.value = true
+                                    OrdersScreen()
+                                }
+                                composable<ProfileScreen> {
+                                    shouldShowBottomNav.value = true
+                                    ProfileScreen(navController = navController, isDarkTheme = isDarkTheme) // Pass isDarkTheme here
+                                }
+                                composable<CartSummaryScreen> {
+                                    shouldShowBottomNav.value = false
+                                    CartSummaryScreen(navController = navController)
+                                }
+                                composable<ProductDetails>(
+                                    typeMap = mapOf(typeOf<UIProductModel>() to productNavType)
+                                ) {
+                                    shouldShowBottomNav.value = false
+                                    val productRoute = it.toRoute<ProductDetails>()
+                                    ProductDetailsScreen(navController, productRoute.product)
+                                }
+                                composable<UserAddressRoute>(
+                                    typeMap = mapOf(typeOf<UserAddressRouteWrapper>() to userAddressNavType)
+                                ) {
+                                    shouldShowBottomNav.value = false
+                                    val userAddressRoute = it.toRoute<UserAddressRoute>()
+                                    UserAddressScreen(
+                                        navController = navController,
+                                        userAddress = userAddressRoute.userAddressWrapper.userAddress
+                                    )
+                                }
+                                composable<NotificationScreen> {
+                                    shouldShowBottomNav.value = false
+
+                                    val notificationViewModel: NotificationViewModel = koinViewModel()
+
+                                    NotificationScreen(
+                                        navController = navController,
+                                        viewModel = notificationViewModel
+                                    )
+                                }
+
+                                composable<ForgotPasswordScreen> {
+                                    shouldShowBottomNav.value = false
+                                    ForgotPasswordScreen(navController)
+                                }
+
                             }
-
-                            composable<ForgotPasswordScreen> {
-                                shouldShowBottomNav.value = false
-                                ForgotPasswordScreen(navController)
-                            }
-
                         }
                     }
                 }

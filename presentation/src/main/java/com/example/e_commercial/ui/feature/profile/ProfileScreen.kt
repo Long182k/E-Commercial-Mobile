@@ -26,6 +26,16 @@ import androidx.navigation.NavController
 import com.example.e_commercial.EcommercialSession
 import com.example.e_commercial.R
 import com.example.e_commercial.navigation.LoginScreen
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.flow.StateFlow
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import android.util.Log
+import java.io.File
+import android.net.Uri
+import com.example.domain.model.ProfileFormData
 
 @Composable
 fun ProfileScreen(
@@ -33,7 +43,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     isDarkTheme: MutableState<Boolean>
 ) {
-    val user by viewModel.user.observeAsState()
+    val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
     val isDialogVisible = remember { mutableStateOf(false) }
     val isAvatarDialogVisible = remember { mutableStateOf(false) }
@@ -51,9 +61,29 @@ fun ProfileScreen(
             viewModel.resetChangePasswordState() // Reset the state after showing error
         }
     }
+    
+    val user by viewModel.user.observeAsState()
 
     var editedName by remember { mutableStateOf("") }
+    var editedAvatarUri by remember { mutableStateOf<String?>(null) }
     var isEditingName by remember { mutableStateOf(false) }
+
+    // Handle state updates
+    LaunchedEffect(state) {
+        when (state) {
+            is ProfileEvent.Success -> {
+                Toast.makeText(context, (state as ProfileEvent.Success).message, Toast.LENGTH_SHORT).show()
+            }
+            is ProfileEvent.Error -> {
+                Toast.makeText(context, (state as ProfileEvent.Error).message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(user) {
+        Log.d("ProfileScreen", "Profile image URL: ${user?.avatarUrl}")
+    }
 
     Column(
         modifier = Modifier
@@ -101,15 +131,18 @@ fun ProfileScreen(
                 .clip(CircleShape)
                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
-                .clickable { isAvatarDialogVisible.value = true }
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_profile),
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(user?.avatarUrl?.let { url ->
+                        url.replace("http://", "https://")
+                           .replace("/upload/", "/upload/q_auto,f_auto/")
+                    })
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Profile Photo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(24.dp),
-                contentScale = ContentScale.Fit
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
             )
         }
 
@@ -121,8 +154,7 @@ fun ProfileScreen(
                 onDismiss = { isAvatarDialogVisible.value = false },
                 onImageSelected = { newAvatarUri ->
                     isAvatarDialogVisible.value = false
-                    viewModel.updateUserAvatar(newAvatarUri)
-                    Toast.makeText(context, "Avatar updated successfully!", Toast.LENGTH_SHORT).show()
+                    editedAvatarUri = newAvatarUri
                 }
             )
         }
@@ -146,30 +178,67 @@ fun ProfileScreen(
 
         // Name Edit Section
         if (isEditingName) {
-            OutlinedTextField(
-                value = editedName,
-                onValueChange = { editedName = it },
-                label = { Text("Edit Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        isEditingName = false
-                        viewModel.updateUserName(editedName)
-                        Toast.makeText(context, "Name updated successfully!", Toast.LENGTH_SHORT).show()
+            AlertDialog(
+                onDismissRequest = { isEditingName = false },
+                title = { Text("Edit Profile") },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = editedName,
+                            onValueChange = { editedName = it },
+                            label = { Text("Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Button(
+                            onClick = { isAvatarDialogVisible.value = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Change Avatar")
+                        }
                     }
-                ) {
-                    Text("Save")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus()
+                            isEditingName = false
+                            user?.let { currentUser ->
+                                val avatarFile = editedAvatarUri?.let { uriString ->
+                                    val uri = Uri.parse(uriString)
+                                    val file = File(context.cacheDir, "temp_avatar")
+                                    context.contentResolver.openInputStream(uri)?.use { input ->
+                                        file.outputStream().use { output ->
+                                            input.copyTo(output)
+                                        }
+                                    }
+                                    file
+                                }
+
+                                val formData = ProfileFormData(
+                                    email = currentUser.email,
+                                    name = editedName,
+                                    avatarUrl = null,
+                                    avatarFile = avatarFile
+                                )
+                                viewModel.editProfile(formData)
+                            }
+                        }
+                    ) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { isEditingName = false }) {
+                        Text("Cancel")
+                    }
                 }
-                Button(onClick = { isEditingName = false }) {
-                    Text("Cancel")
-                }
-            }
+            )
         } else {
             Button(
                 onClick = {
@@ -348,16 +417,23 @@ fun AvatarSelectionDialog(
     onDismiss: () -> Unit,
     onImageSelected: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { 
+            val avatarUrl = uri.toString()
+            onImageSelected(avatarUrl)
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Change Avatar") },
-        text = { Text("Select a new avatar from your gallery or take a photo.") },
+        text = { Text("Select a new avatar from your device") },
         confirmButton = {
-            Button(onClick = {
-                val newImageUri = "dummy_image_uri"
-                onImageSelected(newImageUri)
-            }) {
-                Text("Select Image")
+            Button(onClick = { launcher.launch("image/*") }) {
+                Text("Choose File")
             }
         },
         dismissButton = {

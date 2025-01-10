@@ -1,5 +1,6 @@
 package com.example.data.repository
 
+import com.example.domain.model.ProfileFormData
 import com.example.domain.network.NetworkService
 import com.example.domain.network.ResultWrapper
 import com.example.domain.repository.UserRepository
@@ -17,5 +18,9 @@ class UserRepositoryImplement(private val networkService: NetworkService) : User
 
     override suspend fun forgotPassword(email: String): ResultWrapper<Unit> {
         return networkService.forgotPassword(email)
+    }
+
+    override suspend fun editProfile(formData: ProfileFormData): ResultWrapper<ProfileFormData> {
+        return networkService.editProfile(formData)
     }
 }

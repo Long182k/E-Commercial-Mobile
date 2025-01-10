@@ -8,6 +8,7 @@ import com.example.domain.model.CategoriesListModel
 import com.example.domain.model.OrdersListModel
 import com.example.domain.model.ProductListModel
 import com.example.domain.model.UserDomainModel
+import com.example.domain.model.ProfileFormData
 import com.example.domain.model.request.AddCartRequestModel
 
 interface NetworkService {
@@ -36,6 +37,7 @@ interface NetworkService {
 
     suspend fun changePassword(email: String, oldPassword: String, newPassword: String): ResultWrapper<Unit>
     suspend fun forgotPassword(email: String): ResultWrapper<Unit>
+    suspend fun editProfile(formData: ProfileFormData): ResultWrapper<ProfileFormData>
 
 }
 

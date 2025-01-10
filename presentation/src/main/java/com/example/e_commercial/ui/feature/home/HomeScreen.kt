@@ -66,6 +66,10 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.domain.model.Category
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 import androidx.compose.ui.platform.testTag
+import android.util.Log
+import androidx.compose.ui.platform.LocalContext
+import coil.request.ImageRequest
+
 
 
 @Composable
@@ -342,10 +346,15 @@ fun ProductsSection(
 fun ProfileHeader(
     onCartClicked: () -> Unit,
     navController: NavController,
-    viewModel: ProfileViewModel = viewModel() // Use ProfileViewModel here
+    viewModel: ProfileViewModel = koinViewModel()
 ) {
-    // Access the user state directly with .value
     val user = viewModel.user.observeAsState()
+    val refreshTrigger = viewModel.userRefreshTrigger.collectAsState()
+    
+    // Refresh user data when trigger changes
+    LaunchedEffect(refreshTrigger.value) {
+        viewModel.refreshUserData()
+    }
 
     Card(
         modifier = Modifier
@@ -373,14 +382,23 @@ fun ProfileHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_profile),
-                        contentDescription = null,
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(user.value?.avatarUrl?.let { url ->
+                                url.replace("http://", "https://")
+                                   .replace("/upload/", "/upload/q_auto,f_auto/")
+                            })
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile Photo",
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
                             .background(Color.White)
-                            .padding(8.dp)
+                            .padding(8.dp),
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = R.drawable.ic_profile),
+                        placeholder = painterResource(id = R.drawable.ic_profile)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
@@ -390,7 +408,7 @@ fun ProfileHeader(
                             color = Color.White.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = user.value?.name ?: "User", // Access user.name with .value
+                            text = user.value?.name ?: "User",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -497,6 +515,10 @@ fun CategoryChip(
 
 @Composable
 fun ProductItem(product: Product, onClick: (Product) -> Unit) {
+    LaunchedEffect(product) {
+        Log.d("HomeScreen", "Product image URL: ${product.image}")
+    }
+
     Card(
         modifier = Modifier
             .padding(8.dp)
