@@ -70,7 +70,7 @@ dependencies {
 
     // Coil for image loading
     implementation(libs.coil.compose)
-
+    implementation("io.coil-kt:coil-compose:2.4.0")
     // Koin for dependency injection
     implementation(libs.koin.android)
     implementation(libs.koin.android.compose)

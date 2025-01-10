@@ -14,6 +14,7 @@ import org.koin.core.component.inject
 import com.example.domain.usecase.EditProfileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.domain.model.ProfileFormData
 
 class ProfileViewModel : ViewModel(), KoinComponent {
     private val editProfileUseCase: EditProfileUseCase by inject()
@@ -23,8 +24,8 @@ class ProfileViewModel : ViewModel(), KoinComponent {
     private val _user = MutableLiveData<UserDomainModel>()
     val user: LiveData<UserDomainModel> get() = _user
 
-    private val _changePasswordState = MutableLiveData<Result<Unit>>()
-    val changePasswordState: LiveData<Result<Unit>> get() = _changePasswordState
+    private val _changePasswordState = MutableLiveData<Result<Unit>?>()
+    val changePasswordState: MutableLiveData<Result<Unit>?> get() = _changePasswordState
 
     init {
         _user.value = session.getUser()
@@ -53,18 +54,23 @@ class ProfileViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun editProfile(email: String, name: String, avatarUrl: String) {
+    fun editProfile(formData: ProfileFormData) {
         viewModelScope.launch {
             _state.value = ProfileEvent.Loading
-            when (val result = editProfileUseCase.execute(email, name, avatarUrl)) {
+            
+            when (val result = editProfileUseCase.execute(formData)) {
                 is ResultWrapper.Success -> {
+                    val response = result.value
                     userDomainModel?.let { currentUser ->
                         val updatedUser = currentUser.copy(
-                            name = name,
-                            avatarUrl = avatarUrl
+                            name = response.name,
+                            email = response.email,
+                            avatarUrl = response.avatarUrl
                         )
                         session.storeUser(updatedUser)
                     }
+                    _user.value = session.getUser()
+                    
                     _state.value = ProfileEvent.Success("Profile updated successfully")
                 }
                 is ResultWrapper.Failure -> {

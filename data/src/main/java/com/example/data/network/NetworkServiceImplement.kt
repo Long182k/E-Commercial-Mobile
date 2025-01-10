@@ -11,6 +11,7 @@ import com.example.data.model.request.RegisterRequest
 import com.example.data.model.response.CartResponse
 import com.example.data.model.response.CartSummaryResponse
 import com.example.data.model.response.CategoriesListResponse
+import com.example.data.model.response.EditProfileResponse
 import com.example.data.model.response.OrdersListResponse
 import com.example.data.model.response.PlaceOrderResponse
 import com.example.data.model.response.ProductListResponse
@@ -25,6 +26,7 @@ import com.example.domain.model.CategoriesListModel
 import com.example.domain.model.OrdersListModel
 import com.example.domain.model.Product
 import com.example.domain.model.ProductListModel
+import com.example.domain.model.ProfileFormData
 import com.example.domain.model.UserDomainModel
 import com.example.domain.model.request.AddCartRequestModel
 import com.example.domain.network.NetworkService
@@ -47,6 +49,9 @@ import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.forms.submitFormWithBinaryData
+import java.io.File
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 
 class NetworkServiceImplement(val client: HttpClient) : NetworkService {
     private val baseUrl = "http://192.168.2.205:8081"
@@ -237,23 +242,37 @@ class NetworkServiceImplement(val client: HttpClient) : NetworkService {
         )
     }
 
-    override suspend fun editProfile(email: String, name: String, avatarUrl: String): ResultWrapper<Unit> {
-        println("editProfile Network zzzzz: $email $name $avatarUrl")
+    override suspend fun editProfile(formData: ProfileFormData): ResultWrapper<ProfileFormData> {
         val url = "$baseUrl/auth/edit-profile"
         
         return try {
             val response = client.submitFormWithBinaryData(
                 url = url,
                 formData = formData {
-                    append("email", email)
-                    append("name", name)
-                    append("avatarUrl", avatarUrl)
+                    append("email", formData.email)
+                    append("name", formData.name)
+                    
+                    formData.avatarFile?.let { file ->
+                        append(
+                            key = "avatar",
+                            value = file.readBytes(),
+                            headers = Headers.build {
+                                append(HttpHeaders.ContentDisposition, "filename=${file.name}")
+                            }
+                        )
+                    }
                 }
             ) {
                 method = HttpMethod.Put
                 contentType(ContentType.MultiPart.FormData)
-            }
-            ResultWrapper.Success(Unit)
+            }.body<EditProfileResponse>()
+            
+            ResultWrapper.Success(ProfileFormData(
+                email = response.data.email,
+                name = response.data.name,
+                avatarUrl = response.data.avatarUrl,
+                avatarFile = null  // We don't get file back from server
+            ))
         } catch (e: ClientRequestException) {
             ResultWrapper.Failure(e)
         } catch (e: ServerResponseException) {

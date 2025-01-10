@@ -30,6 +30,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.flow.StateFlow
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import android.util.Log
+import java.io.File
+import android.net.Uri
+import com.example.domain.model.ProfileFormData
 
 @Composable
 fun ProfileScreen(
@@ -73,6 +79,10 @@ fun ProfileScreen(
             }
             else -> {}
         }
+    }
+
+    LaunchedEffect(user) {
+        Log.d("ProfileScreen", "Profile image URL: ${user?.avatarUrl}")
     }
 
     Column(
@@ -121,15 +131,21 @@ fun ProfileScreen(
                 .clip(CircleShape)
                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
-                .clickable { isAvatarDialogVisible.value = true }
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_profile),
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(user?.avatarUrl?.let { url ->
+                        // Ensure HTTPS and add Cloudinary transformations
+                        url.replace("http://", "https://")
+                           .replace("/upload/", "/upload/q_auto,f_auto/")
+                    })
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Profile Photo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(24.dp),
-                contentScale = ContentScale.Fit
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                error = painterResource(id = R.drawable.ic_profile),
+                placeholder = painterResource(id = R.drawable.ic_profile)
             )
         }
 
@@ -196,13 +212,25 @@ fun ProfileScreen(
                             focusManager.clearFocus()
                             isEditingName = false
                             user?.let { currentUser ->
-                                viewModel.editProfile(
+                                val avatarFile = editedAvatarUri?.let { uriString ->
+                                    val uri = Uri.parse(uriString)
+                                    val file = File(context.cacheDir, "temp_avatar")
+                                    context.contentResolver.openInputStream(uri)?.use { input ->
+                                        file.outputStream().use { output ->
+                                            input.copyTo(output)
+                                        }
+                                    }
+                                    file
+                                }
+
+                                val formData = ProfileFormData(
                                     email = currentUser.email,
                                     name = editedName,
-                                    avatarUrl = editedAvatarUri ?: currentUser.avatarUrl ?: ""
+                                    avatarUrl = null,
+                                    avatarFile = avatarFile
                                 )
+                                viewModel.editProfile(formData)
                             }
-                            Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
                         }
                     ) {
                         Text("Save")

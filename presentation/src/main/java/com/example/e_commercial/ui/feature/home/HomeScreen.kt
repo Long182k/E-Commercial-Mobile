@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.domain.model.Category
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 import androidx.compose.ui.platform.testTag
+import android.util.Log
 
 
 @Composable
@@ -498,6 +499,10 @@ fun CategoryChip(
 
 @Composable
 fun ProductItem(product: Product, onClick: (Product) -> Unit) {
+    LaunchedEffect(product) {
+        Log.d("HomeScreen", "Product image URL: ${product.image}")
+    }
+
     Card(
         modifier = Modifier
             .padding(8.dp)
