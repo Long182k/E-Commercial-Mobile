@@ -147,7 +147,7 @@ fun CartSummaryScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_success),
+                            painter = painterResource(id = R.drawable.ic_order_confirm),
                             contentDescription = null
                         )
                         Text(
@@ -318,7 +318,7 @@ fun CartSummaryScreenContent(cartSummary: CartSummary) {
                 if (cartSummary.data.discount > 0) {
                     PriceSummaryRow(
                         title = "Discount",
-                        amount = -cartSummary.data.discount,
+                        amount = cartSummary.data.discount,
                         icon = R.drawable.ic_discount,
                         isDiscount = true
                     )

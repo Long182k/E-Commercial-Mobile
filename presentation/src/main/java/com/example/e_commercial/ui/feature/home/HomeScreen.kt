@@ -69,7 +69,7 @@ import androidx.compose.ui.platform.testTag
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import coil.request.ImageRequest
-
+import androidx.compose.foundation.border
 
 
 @Composable
@@ -394,8 +394,12 @@ fun ProfileHeader(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                            .padding(8.dp),
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = CircleShape
+                            ),
                         contentScale = ContentScale.Crop,
                         error = painterResource(id = R.drawable.ic_profile),
                         placeholder = painterResource(id = R.drawable.ic_profile)
