@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_commercial.R
+import com.example.e_commercial.navigation.HomeScreen
+import com.example.e_commercial.navigation.LoginScreen
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,6 +90,11 @@ fun ForgotPasswordScreen(navController: NavController, viewModel: ForgotPassword
                         text = stringResource(id = R.string.forgot_password_success),
                         color = MaterialTheme.colorScheme.primary
                     )
+                    LaunchedEffect(state) {
+                        navController.navigate(LoginScreen) {
+                            popUpTo(LoginScreen) { inclusive = true }
+                        }
+                    }
                 }
                 is ForgotPasswordState.Error -> {
                     Text(

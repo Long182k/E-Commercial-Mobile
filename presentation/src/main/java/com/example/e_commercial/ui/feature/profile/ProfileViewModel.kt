@@ -21,8 +21,8 @@ class ProfileViewModel : ViewModel(), KoinComponent {
     private val _user = MutableLiveData<UserDomainModel>()
     val user: LiveData<UserDomainModel> get() = _user
 
-    private val _changePasswordState = MutableLiveData<Result<Unit>>()
-    val changePasswordState: LiveData<Result<Unit>> get() = _changePasswordState
+    private val _changePasswordState = MutableLiveData<Result<Unit>?>()
+    val changePasswordState: LiveData<Result<Unit>?> get() = _changePasswordState
 
     init {
         _user.value = session.getUser()
