@@ -53,6 +53,10 @@ class OrdersViewModel(
                             totalAmount = order.totalAmount,
                             userId = order.userId,
                             address = order.address,
+                            subtotal = order.subtotal,
+                            shipping = order.shipping,
+                            tax = order.tax,
+                            discount = order.discount
                         )
                     }
                     _ordersEvent.value = OrdersEvent.Success(ordersWithAddress)

@@ -17,11 +17,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +52,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.window.Dialog
+import androidx.compose.material3.Divider
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+import java.time.format.DateTimeParseException
 
 private val PurpleButton = Color(0xFF6B4EFF)
 private val GreenStatus = Color(0xFF4CAF50)
@@ -180,6 +187,7 @@ fun OrderList(orders: List<OrdersData>, viewModel: OrdersViewModel = koinViewMod
 
 @Composable
 fun OrderItem(order: OrdersData, user: UserDomainModel) {
+    println("OrderItem: $order")
     var showDetails by remember { mutableStateOf(false) }
 
     Card(
@@ -206,7 +214,7 @@ fun OrderItem(order: OrdersData, user: UserDomainModel) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = order.orderDate,
+                    text = formatOrderDate(order.orderDate),
                     color = TextGray,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -236,7 +244,7 @@ fun OrderItem(order: OrdersData, user: UserDomainModel) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "Total Amount: ${order.items.sumOf { it.price * it.quantity }}",
+                        text = "Total Amount: ${order.totalAmount}",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -403,11 +411,79 @@ fun OrderItem(order: OrdersData, user: UserDomainModel) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Total",
+                            text = "Subtotal 🛒",
                             style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                         Text(
-                            text = "$${order.items.sumOf { it.price * it.quantity }}",
+                            text = "$${order.subtotal}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Shipping 🚚",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "$${order.shipping}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Tax 💰",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "$${order.tax}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    if (order.discount > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Discount 🏷️",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = "-$${order.discount}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total 💵",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "$${order.totalAmount}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -434,6 +510,30 @@ fun OrderItem(order: OrdersData, user: UserDomainModel) {
                     }
                 }
             }
+        }
+    }
+}
+
+private fun formatOrderDate(dateString: String?): String {
+    return try {
+        dateString?.let {
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+            val outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            
+            val dateTime = LocalDateTime.parse(dateString, inputFormatter)
+            dateTime.format(outputFormatter)
+        } ?: "N/A"
+    } catch (e: DateTimeParseException) {
+        try {
+            // Fallback for different format
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+            val outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            
+            val dateTime = LocalDateTime.parse(dateString, inputFormatter)
+            dateTime.format(outputFormatter)
+        } catch (e: Exception) {
+            // If all parsing fails, return the original string or N/A
+            dateString ?: "N/A"
         }
     }
 }
