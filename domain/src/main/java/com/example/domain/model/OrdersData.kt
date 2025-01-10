@@ -8,4 +8,8 @@ data class OrdersData(
     val totalAmount: Double,
     val userId: Int,
     val address: AddressDomainModel,
+    val subtotal: Double,
+    val shipping: Double,
+    val tax: Double,
+    val discount: Double
 )

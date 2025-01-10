@@ -11,7 +11,11 @@ data class OrderListData(
     val status: String,
     val totalAmount: Double,
     val userId: Int,
-    val address: AddressResponse
+    val address: AddressResponse,
+    val subtotal: Double,
+    val shipping: Double,
+    val tax: Double,
+    val discount: Double
 ) {
     suspend fun toDomainResponse(
         getProductImage: suspend (Int) -> String
@@ -23,7 +27,11 @@ data class OrderListData(
             status = status,
             totalAmount = totalAmount,
             userId = userId,
-            address = address.toDomain()
+            address = address.toDomain(),
+            subtotal = subtotal,
+            shipping = shipping,
+            tax = tax,
+            discount = discount
         )
     }
 }
