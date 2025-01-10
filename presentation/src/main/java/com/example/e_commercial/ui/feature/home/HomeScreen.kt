@@ -67,6 +67,9 @@ import com.example.domain.model.Category
 import com.example.e_commercial.ui.feature.profile.ProfileViewModel
 import androidx.compose.ui.platform.testTag
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
+import coil.request.ImageRequest
+
 
 
 @Composable
@@ -375,14 +378,23 @@ fun ProfileHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_profile),
-                        contentDescription = null,
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(user.value?.avatarUrl?.let { url ->
+                                url.replace("http://", "https://")
+                                   .replace("/upload/", "/upload/q_auto,f_auto/")
+                            })
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile Photo",
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
                             .background(Color.White)
-                            .padding(8.dp)
+                            .padding(8.dp),
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = R.drawable.ic_profile),
+                        placeholder = painterResource(id = R.drawable.ic_profile)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
@@ -392,7 +404,7 @@ fun ProfileHeader(
                             color = Color.White.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = user.value?.name ?: "User", // Access user.name with .value
+                            text = user.value?.name ?: "User",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

@@ -135,7 +135,6 @@ fun ProfileScreen(
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(user?.avatarUrl?.let { url ->
-                        // Ensure HTTPS and add Cloudinary transformations
                         url.replace("http://", "https://")
                            .replace("/upload/", "/upload/q_auto,f_auto/")
                     })
@@ -144,8 +143,6 @@ fun ProfileScreen(
                 contentDescription = "Profile Photo",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                error = painterResource(id = R.drawable.ic_profile),
-                placeholder = painterResource(id = R.drawable.ic_profile)
             )
         }
 
