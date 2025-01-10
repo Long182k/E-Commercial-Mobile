@@ -176,7 +176,9 @@ fun ProfileScreen(
                     isEditingName = true
                     editedName = user?.name.orEmpty()
                 },
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(text = "Edit Profile")
             }
