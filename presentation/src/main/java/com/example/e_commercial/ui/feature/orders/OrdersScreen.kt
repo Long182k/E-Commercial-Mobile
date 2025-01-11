@@ -70,6 +70,7 @@ fun OrdersScreen(viewModel: OrdersViewModel = koinViewModel()) {
     }
 
     val uiState = viewModel.ordersEvent.collectAsState()
+    println("uiState: ${uiState.value}")
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
