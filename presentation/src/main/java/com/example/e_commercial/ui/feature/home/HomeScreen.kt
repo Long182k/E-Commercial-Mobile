@@ -401,8 +401,8 @@ fun ProfileHeader(
                                 shape = CircleShape
                             ),
                         contentScale = ContentScale.Crop,
-                        error = painterResource(id = R.drawable.ic_profile),
-                        placeholder = painterResource(id = R.drawable.ic_profile)
+                        error = painterResource(id = R.drawable.ic_default_img),
+                        placeholder = painterResource(id = R.drawable.ic_default_img)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {

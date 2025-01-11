@@ -143,6 +143,8 @@ fun ProfileScreen(
                 contentDescription = "Profile Photo",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
+                error = painterResource(id = R.drawable.ic_default_img),
+                placeholder = painterResource(id = R.drawable.ic_default_img)
             )
         }
 
