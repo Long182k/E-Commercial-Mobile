@@ -24,6 +24,11 @@ import coil.compose.rememberImagePainter
 import com.example.domain.model.OrdersData
 import com.example.e_commercial.BottomNavItems
 import com.example.e_commercial.R
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+
+private val TextGray = Color(0xFF9E9E9E)
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -207,7 +212,8 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
             )
 
             Text(
-                text = "Order Date: ${order.orderDate}",
+                text = formatOrderDate(order.orderDate),
+                color = TextGray,
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -227,6 +233,30 @@ fun NotificationCard(order: OrdersData, onDismiss: () -> Unit) {
             ) {
                 Text(text = "Dismiss")
             }
+        }
+    }
+}
+
+private fun formatOrderDate(dateString: String?): String {
+    return try {
+        dateString?.let {
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+            val outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            
+            val dateTime = LocalDateTime.parse(dateString, inputFormatter)
+            dateTime.format(outputFormatter)
+        } ?: "N/A"
+    } catch (e: DateTimeParseException) {
+        try {
+            // Fallback for different format
+            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+            val outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            
+            val dateTime = LocalDateTime.parse(dateString, inputFormatter)
+            dateTime.format(outputFormatter)
+        } catch (e: Exception) {
+            // If all parsing fails, return the original string or N/A
+            dateString ?: "N/A"
         }
     }
 }
