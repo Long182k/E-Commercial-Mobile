@@ -27,8 +27,10 @@ class EcommercialSession(private val context: Context) {
         val email = sharedPref.getString("email", null)
         val name = sharedPref.getString("name", null)
         val avatarUrl = sharedPref.getString("avatarUrl", null)
-        return if (id != 0 && username != null && email != null && name != null && avatarUrl != null) {
-            UserDomainModel(id, username, email, name,avatarUrl)
+        
+        return if (id != 0 && username != null && email != null && name != null) {
+            val user = UserDomainModel(id, username, email, name, avatarUrl)
+            user
         } else {
             null
         }
